@@ -1,0 +1,3640 @@
+-- Decompiled with Potassium's decompiler.
+
+local RunService = game:GetService("RunService");
+local TweenService = game:GetService("TweenService");
+local CollectionService = game:GetService("CollectionService");
+local u1 = RunService:IsServer() and require(game.ServerStorage.Scripts.SetNetworkOwner);
+local GetBlockInfo = require(game.ReplicatedStorage.Scripts.GetBlockInfo);
+local Heartbeat = RunService.Heartbeat;
+local u2 = {};
+local QueueBlocksRequest = game.ReplicatedStorage:WaitForChild("InputLocalScript"):WaitForChild("QueueBlocksRequest");
+local LocalPlayer = game.Players.LocalPlayer;
+local CurrentCamera = workspace.CurrentCamera;
+local u3 = nil;
+local u4 = RunService:IsServer();
+local u5 = {};
+local u6 = {};
+local u7 = {};
+local u8 = {};
+local GetStoredBlockState = game.ReplicatedStorage.InputLocalScript.GetStoredBlockState;
+u2.Motor = {};
+u2.Motor.canSetNetworkOwner = true;
+
+function u2.Motor.getState(p9) -- Line: 27
+    -- upvalues: u4 (copy), GetStoredBlockState (copy)
+    local v10 = p9:GetAttribute("Forward") or false;
+    local v11 = p9:GetAttribute("Backward") or false;
+
+    if u4 then
+        local v12 = GetStoredBlockState:Invoke(p9);
+        v10 = v12.Forward or false;
+        v11 = v12.Backward or false;
+    end;
+
+    return v10, v11;
+end;
+
+function u2.Motor.calState(p13, p14, p15, p16, p17) -- Line: 37
+    -- upvalues: CollectionService (copy)
+    local v18 = p17.BindUp.Value == -1;
+    local v19 = p17.BindDown.Value == -1;
+    local v20 = p17:GetChildren();
+    local v21 = false;
+    local v22 = false;
+
+    for i = 1, #v20 do
+        local v23 = v20[i];
+        local v24 = v23:IsA("ObjectValue");
+
+        if v24 then
+            if v23.Name == "ControllerRef" then
+                v24 = v23.Value;
+            else
+                v24 = false;
+            end;
+        end;
+
+        if v24 and not v24:HasTag("Legacy") then
+            if v24.Parent then
+                local Value = v23.Value;
+                local v25 = CollectionService:HasTag(v23.Value, "SwitchInput");
+                local v26;
+
+                if v25 then
+                    v26 = Value:GetAttribute("On");
+                else
+                    v26 = v25;
+                end;
+
+                if not v21 then
+                    local v27;
+
+                    if v18 then
+                        v27 = Value:GetAttribute("Input" .. tostring(Enum.KeyCode.W.Value)) or Value:GetAttribute("Input" .. tostring(Enum.KeyCode.Up.Value)) or (Value:GetAttribute("Input" .. tostring(Enum.KeyCode.ButtonR2.Value)) or false);
+                    else
+                        v27 = Value:GetAttribute("Input" .. tostring(p17.BindUp.Value)) or false;
+                    end;
+
+                    v21 = v25 and v26 and true or v27;
+                end;
+
+                if not v22 then
+                    if v19 then
+                        v22 = Value:GetAttribute("Input" .. tostring(Enum.KeyCode.S.Value)) or (Value:GetAttribute("Input" .. tostring(Enum.KeyCode.Down.Value)) or Value:GetAttribute("Input" .. tostring(Enum.KeyCode.ButtonR1.Value)) or false);
+                    else
+                        v22 = Value:GetAttribute("Input" .. tostring(p17.BindDown.Value)) or false;
+                    end;
+                end;
+            else
+                v23:Destroy();
+            end;
+        end;
+    end;
+
+    return v21, v22;
+end;
+
+function u2.Motor.setState(p28, p29, p30, p31, p32, p33, p34, p35, p36, p37) -- Line: 102
+    -- upvalues: u2 (copy), u4 (copy)
+    local v38, v39 = u2[p29.Name].getState(p29);
+    local v40;
+
+    if v38 == p36 then
+        v40 = false;
+    else
+        setState(p29, "Forward", p36);
+        v40 = true;
+    end;
+
+    if v39 ~= p37 then
+        setState(p29, "Backward", p37);
+        v40 = true;
+    end;
+
+    if not u4 and v40 then
+        if p32 then
+            p32 = p32.PrimaryPart;
+        end;
+
+        local v41 = findSpinFactor(p29.PrimaryPart, p32);
+
+        if p29:FindFirstChild("SpinFactor") then
+            v41 = p29.SpinFactor.Value;
+        else
+            local IntValue = Instance.new("IntValue");
+            IntValue.Name = "SpinFactor";
+            IntValue.Value = v41;
+            IntValue.Parent = p29;
+        end;
+
+        if p29.ReverseSpin.Value then
+            v41 = -v41;
+        end;
+
+        local v42 = p29.MaxSpeed.Value * v41;
+        local v43 = 0;
+
+        if p36 and not p37 then
+            v43 = v42;
+        elseif not p36 and p37 then
+            v43 = -v42;
+        end;
+
+        p29.PrimaryPart.HingeConstraint.AngularVelocity = v43;
+    end;
+
+    return v40;
+end;
+
+u2.HugeMotor = u2.Motor;
+u2.Servo = {};
+u2.Servo.canSetNetworkOwner = true;
+
+function u2.Servo.getState(p44) -- Line: 153
+    -- upvalues: u4 (copy), GetStoredBlockState (copy)
+    local v45 = p44:GetAttribute("Left") or false;
+    local v46 = p44:GetAttribute("Right") or false;
+
+    if u4 then
+        local v47 = GetStoredBlockState:Invoke(p44);
+        v45 = v47.Left or false;
+        v46 = v47.Right or false;
+    end;
+
+    return v45, v46;
+end;
+
+function u2.Servo.calState(p48, p49, p50, p51, p52) -- Line: 163
+    -- upvalues: CollectionService (copy)
+    local v53 = p52.BindLeft.Value == -1;
+    local v54 = p52.BindRight.Value == -1;
+    local v55 = p52:GetChildren();
+    local v56 = false;
+    local v57 = false;
+
+    for i = 1, #v55 do
+        local v58 = v55[i];
+        local v59 = v58:IsA("ObjectValue");
+
+        if v59 then
+            if v58.Name == "ControllerRef" then
+                v59 = v58.Value;
+            else
+                v59 = false;
+            end;
+        end;
+
+        if v59 and not v59:HasTag("Legacy") then
+            if v59.Parent then
+                local Value = v58.Value;
+                local v60 = CollectionService:HasTag(v58.Value, "SwitchInput");
+                local v61;
+
+                if v60 then
+                    v61 = Value:GetAttribute("On");
+                else
+                    v61 = v60;
+                end;
+
+                if not v56 then
+                    local v62;
+
+                    if v53 then
+                        v62 = Value:GetAttribute("Input" .. tostring(Enum.KeyCode.A.Value)) or (Value:GetAttribute("Input" .. tostring(Enum.KeyCode.Left.Value)) or false);
+                    else
+                        v62 = Value:GetAttribute("Input" .. tostring(p52.BindLeft.Value)) or false;
+                    end;
+
+                    v56 = v60 and v61 and true or v62;
+                end;
+
+                if not v57 then
+                    if v54 then
+                        v57 = Value:GetAttribute("Input" .. tostring(Enum.KeyCode.D.Value)) or Value:GetAttribute("Input" .. tostring(Enum.KeyCode.Right.Value)) or false;
+                    else
+                        v57 = Value:GetAttribute("Input" .. tostring(p52.BindRight.Value)) or false;
+                    end;
+                end;
+            else
+                v58:Destroy();
+            end;
+        end;
+    end;
+
+    return v56, v57;
+end;
+
+function u2.Servo.setState(p63, p64, p65, p66, p67, p68, p69, p70, p71, p72) -- Line: 223
+    -- upvalues: u2 (copy), u4 (copy)
+    local v73, v74 = u2[p64.Name].getState(p64);
+    local v75;
+
+    if v73 == p71 then
+        v75 = false;
+    else
+        setState(p64, "Left", p71);
+        v75 = true;
+    end;
+
+    if v74 ~= p72 then
+        setState(p64, "Right", p72);
+        v75 = true;
+    end;
+
+    if not u4 and v75 then
+        local v76 = p64.TargetAngle.Value * (p64.ReverseRotation.Value and -1 or 1);
+        local v77 = 0;
+
+        if p71 then
+            v77 = v77 + v76;
+        end;
+
+        if p72 then
+            v77 = v77 - v76;
+        end;
+
+        p64.PrimaryPart.HingeConstraint.TargetAngle = v77;
+    end;
+
+    return v75;
+end;
+
+u2.Piston = {};
+u2.Piston.getState = u2.Motor.getState;
+
+function u2.Piston.calState(p78, p79, p80, p81, p82) -- Line: 262
+    -- upvalues: CollectionService (copy)
+    local v83 = p82.BindUp.Value == -1;
+    local v84 = p82.BindDown.Value == -1;
+    local v85 = p82:GetChildren();
+    local v86 = false;
+    local v87 = false;
+
+    for i = 1, #v85 do
+        local v88 = v85[i];
+        local v89 = v88:IsA("ObjectValue");
+
+        if v89 then
+            if v88.Name == "ControllerRef" then
+                v89 = v88.Value;
+            else
+                v89 = false;
+            end;
+        end;
+
+        if v89 and not v89:HasTag("Legacy") then
+            if v89.Parent then
+                local Value = v88.Value;
+                local v90 = CollectionService:HasTag(v88.Value, "SwitchInput");
+                local v91;
+
+                if v90 then
+                    v91 = Value:GetAttribute("On");
+                else
+                    v91 = v90;
+                end;
+
+                if not v86 then
+                    local v92;
+
+                    if v83 then
+                        v92 = Value:GetAttribute("Input" .. tostring(Enum.KeyCode.W.Value)) or Value:GetAttribute("Input" .. tostring(Enum.KeyCode.Up.Value)) or (Value:GetAttribute("Input" .. tostring(Enum.KeyCode.ButtonR2.Value)) or false);
+                    else
+                        v92 = Value:GetAttribute("Input" .. tostring(p82.BindUp.Value)) or false;
+                    end;
+
+                    v86 = v90 and v91 and true or v92;
+                end;
+
+                if not v87 then
+                    if v84 then
+                        v87 = Value:GetAttribute("Input" .. tostring(Enum.KeyCode.S.Value)) or (Value:GetAttribute("Input" .. tostring(Enum.KeyCode.Down.Value)) or Value:GetAttribute("Input" .. tostring(Enum.KeyCode.ButtonL2.Value)) or false);
+                    else
+                        v87 = Value:GetAttribute("Input" .. tostring(p82.BindDown.Value)) or false;
+                    end;
+
+                    if v90 and not v91 then
+                        v87 = true;
+                    end;
+                end;
+            else
+                v88:Destroy();
+            end;
+        end;
+    end;
+
+    if v86 then
+        v87 = false;
+    end;
+
+    return v86, v87;
+end;
+
+function u2.Piston.setState(p93, u94, p95, p96, p97, p98, p99, p100, p101, p102, p103) -- Line: 332
+    -- upvalues: u2 (copy), u4 (copy)
+    local v104, v105 = u2[u94.Name].getState(u94);
+    local v106;
+
+    if v104 == p101 then
+        v106 = false;
+    else
+        setState(u94, "Forward", p101);
+        v106 = true;
+    end;
+
+    if v105 ~= p102 then
+        setState(u94, "Backward", p102);
+        v106 = true;
+    end;
+
+    if v106 and (u4 and not p103) then
+        local _ = u94.PrimaryPart;
+        local Base = u94.Base;
+        local v107 = nil;
+        local u108;
+
+        if p101 and not p102 then
+            u108 = u94.ExtendLength.Value;
+        else
+            u108 = not p101 and p102 and 0 or v107;
+        end;
+
+        if u108 then
+            spawn(function() -- Line: 361
+                -- upvalues: Base (copy), u108 (ref), u94 (copy)
+                local v109 = {
+                    C1 = (Base.CFrame * CFrame.new(-(u108 + 0.4), 0, 0)):toObjectSpace(Base.CFrame)
+                };
+                local C1 = Base.WeldToTop.C1;
+                local v110 = (Base.WeldToTop.C1.p - v109.C1.p).magnitude / u94.Speed.Value;
+                local v111 = tick();
+                u94.LastGlobalTick.Value = v111;
+                local v112 = v110;
+                local v113 = 0;
+
+                while u94.Parent and v111 == u94.LastGlobalTick.Value do
+                    local WeldToTop = Base.WeldToTop;
+                    local Parent = WeldToTop.Parent;
+                    local v114 = 1 - math.max(v110, 0) / v112;
+                    local v115 = C1:Lerp(v109.C1, v114 ~= v114 and 1 or v114);
+                    WeldToTop.Parent = nil;
+                    WeldToTop.C1 = v115;
+                    WeldToTop.Parent = Parent;
+
+                    if v110 <= 0 then
+                        break;
+                    end;
+
+                    v110 = v110 - v113;
+                    v113 = wait();
+                end;
+            end);
+        else
+            local v116 = tick();
+            u94.LastGlobalTick.Value = v116;
+        end;
+    end;
+
+    return v106;
+end;
+
+u2.BoatMotor = {};
+u2.BoatMotor.canSetNetworkOwner = true;
+
+function u2.BoatMotor.getState(p117) -- Line: 420
+    -- upvalues: u4 (copy), GetStoredBlockState (copy)
+    local v118 = p117:GetAttribute("Forward") or false;
+    local v119 = p117:GetAttribute("Backward") or false;
+    local v120 = p117:GetAttribute("Left") or false;
+    local v121 = p117:GetAttribute("Right") or false;
+
+    if u4 then
+        local v122 = GetStoredBlockState:Invoke(p117);
+        v118 = v122.Forward or false;
+        v119 = v122.Backward or false;
+        v120 = v122.Left or false;
+        v121 = v122.Right or false;
+    end;
+
+    return v118, v119, v120, v121;
+end;
+
+function u2.BoatMotor.calState(p123, p124, p125, p126, p127) -- Line: 434
+    -- upvalues: CollectionService (copy)
+    local v128 = false;
+    local v129 = false;
+    local v130 = false;
+    local v131 = false;
+    local BindLeft = p127:FindFirstChild("BindLeft");
+    local v132;
+
+    if BindLeft then
+        v132 = p127.BindLeft.Value == -1;
+    else
+        v132 = BindLeft;
+    end;
+
+    local v133;
+
+    if BindLeft then
+        v133 = p127.BindRight.Value == -1;
+    else
+        v133 = BindLeft;
+    end;
+
+    local v134 = p127.BindUp.Value == -1;
+    local v135 = p127.BindDown.Value == -1;
+    local v136 = p127:GetChildren();
+
+    for i = 1, #v136 do
+        local v137 = v136[i];
+        local v138 = v137:IsA("ObjectValue");
+
+        if v138 then
+            if v137.Name == "ControllerRef" then
+                v138 = v137.Value;
+            else
+                v138 = false;
+            end;
+        end;
+
+        if v138 and not v138:HasTag("Legacy") then
+            if v138.Parent then
+                local Value = v137.Value;
+                local v139 = CollectionService:HasTag(v137.Value, "SwitchInput");
+                local v140;
+
+                if v139 then
+                    v140 = Value:GetAttribute("On");
+                else
+                    v140 = v139;
+                end;
+
+                if not v128 and BindLeft then
+                    if v132 then
+                        v128 = Value:GetAttribute("Input" .. tostring(Enum.KeyCode.A.Value)) or (Value:GetAttribute("Input" .. tostring(Enum.KeyCode.Left.Value)) or false);
+                    else
+                        v128 = Value:GetAttribute("Input" .. tostring(p127.BindLeft.Value)) or false;
+                    end;
+                end;
+
+                if not v129 and BindLeft then
+                    if v133 then
+                        v129 = Value:GetAttribute("Input" .. tostring(Enum.KeyCode.D.Value)) or (Value:GetAttribute("Input" .. tostring(Enum.KeyCode.Right.Value)) or false);
+                    else
+                        v129 = Value:GetAttribute("Input" .. tostring(p127.BindRight.Value)) or false;
+                    end;
+                end;
+
+                if not v131 then
+                    local v141;
+
+                    if v134 then
+                        v141 = Value:GetAttribute("Input" .. tostring(Enum.KeyCode.W.Value)) or (Value:GetAttribute("Input" .. tostring(Enum.KeyCode.Up.Value)) or false);
+                    else
+                        v141 = Value:GetAttribute("Input" .. tostring(p127.BindUp.Value)) or false;
+                    end;
+
+                    v131 = v139 and v140 and true or v141;
+                end;
+
+                if not v130 then
+                    if v135 then
+                        v130 = Value:GetAttribute("Input" .. tostring(Enum.KeyCode.S.Value)) or Value:GetAttribute("Input" .. tostring(Enum.KeyCode.Down.Value)) or false;
+                    else
+                        v130 = Value:GetAttribute("Input" .. tostring(p127.BindDown.Value)) or false;
+                    end;
+                end;
+            else
+                v137:Destroy();
+            end;
+        end;
+    end;
+
+    return v131, v130, v128, v129;
+end;
+
+function u2.BoatMotor.setState(p142, u143, p144, p145, u146, p147, p148, p149, p150, p151, p152, p153) -- Line: 525
+    -- upvalues: u2 (copy), u4 (copy)
+    local v154, v155, v156, v157 = u2[u143.Name].getState(u143);
+    local v158;
+
+    if v154 == p150 then
+        v158 = false;
+    else
+        setState(u143, "Forward", p150);
+        v158 = true;
+    end;
+
+    if v155 ~= p151 then
+        setState(u143, "Backward", p151);
+        v158 = true;
+    end;
+
+    if v156 ~= p152 then
+        setState(u143, "Left", p152);
+        v158 = true;
+    end;
+
+    if v157 ~= p153 then
+        setState(u143, "Right", p153);
+        v158 = true;
+    end;
+
+    if v158 and not u4 then
+        local v159 = p153 and 1 or 0;
+
+        if p152 then
+            v159 = v159 - 1;
+        end;
+
+        local v160 = p150 and 1 or 0;
+
+        if p151 then
+            v160 = v160 - 1;
+        end;
+
+        if u143.Direction.Value ~= v159 or u143.DirectionThrust.Value ~= v160 then
+            u143.Direction.Value = v159;
+            u143.DirectionThrust.Value = v160;
+
+            if u146 then
+                u146 = u146:FindFirstChildOfClass("VehicleSeat");
+            end;
+
+            if not u143:FindFirstChild("TurnPart") and (u146 and u146.Parent) then
+                local BodyAngularVelocity = Instance.new("BodyAngularVelocity");
+                BodyAngularVelocity.Name = "BAV";
+                BodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0);
+                BodyAngularVelocity.MaxTorque = Vector3.new(0, 0, 0);
+                local Part = Instance.new("Part");
+                Part.Name = "TurnPart";
+                Part.Size = Vector3.new(0.1, 0.1, 0.1);
+                Part.Material = Enum.Material.SmoothPlastic;
+                Part.CanCollide = false;
+                Part.Anchored = false;
+                Part.TopSurface = Enum.SurfaceType.Smooth;
+                Part.BottomSurface = Enum.SurfaceType.Smooth;
+                Part.CFrame = u146.CFrame;
+                Part.Massless = true;
+                Part.Parent = u143;
+                WeldTogether(u146, Part);
+                local BoolValue = Instance.new("BoolValue");
+                BoolValue.Name = "NoWelds";
+                BoolValue.Parent = Part;
+                BodyAngularVelocity.Parent = Part;
+                task.spawn(function() -- Line: 597
+                    -- upvalues: u146 (copy), Part (copy)
+                    u146:GetPropertyChangedSignal("Occupant"):Wait();
+                    Part:Destroy();
+                end);
+            end;
+
+            local _, _, _, _, _, v161, _, _, _, _, _, _ = u143.PrimaryPart.CFrame:toObjectSpace(u143.Motor.PrimaryPart.CFrame):GetComponents();
+            local v162 = v161 < -0.5 and -1 or (v161 > 0.5 and 1 or 0);
+
+            if v159 == 0 then
+                u143.PrimaryPart.WeldMotor.C1 = u143.PrimaryPart.WeldMotor.C1 * CFrame.Angles(0, math.rad(v162 * 45), 0);
+
+                if u143:FindFirstChild("TurnPart") then
+                    u143.TurnPart.BAV.AngularVelocity = Vector3.new(0, 0, 0);
+                    u143.TurnPart.BAV.MaxTorque = Vector3.new(0, 0, 0);
+                end;
+            elseif v159 == 1 then
+                u143.PrimaryPart.WeldMotor.C1 = u143.PrimaryPart.WeldMotor.C1 * CFrame.Angles(0, math.rad(v162 * 45 + -45), 0);
+
+                if u143:FindFirstChild("TurnPart") then
+                    u143.TurnPart.BAV.AngularVelocity = Vector3.new(0, -u143.TurningSpeed.Value, 0);
+                    u143.TurnPart.BAV.MaxTorque = Vector3.new(0, u143.MaxTurningForce.Value, 0);
+                end;
+            else
+                u143.PrimaryPart.WeldMotor.C1 = u143.PrimaryPart.WeldMotor.C1 * CFrame.Angles(0, math.rad(v162 * 45 + 45), 0);
+
+                if u143:FindFirstChild("TurnPart") then
+                    u143.TurnPart.BAV.AngularVelocity = Vector3.new(0, u143.TurningSpeed.Value, 0);
+                    u143.TurnPart.BAV.MaxTorque = Vector3.new(0, u143.MaxTurningForce.Value, 0);
+                end;
+            end;
+
+            if v160 == 0 or (u143.PrimaryPart.Start.IsPlaying or u143.PrimaryPart.Loop.IsPlaying) then
+                if v160 == 0 and (u143.PrimaryPart.Start.IsPlaying or u143.PrimaryPart.Loop.IsPlaying) then
+                    u143.PrimaryPart.Start:Stop();
+                    u143.PrimaryPart.Loop:Stop();
+
+                    if not u143.PrimaryPart.End.IsPlaying then
+                        u143.PrimaryPart.End:Play();
+                    end;
+                end;
+            else
+                u143.PrimaryPart.End:Stop();
+                u143.PrimaryPart.Start:Play();
+                task.delay(u143.PrimaryPart.Start.TimeLength, function() -- Line: 642
+                    -- upvalues: u143 (copy)
+                    if u143.Parent and u143.DirectionThrust.Value ~= 0 then
+                        u143.PrimaryPart.Loop:Play();
+                    end;
+                end);
+            end;
+
+            updateForceLoop(u143);
+        end;
+    end;
+
+    return v158;
+end;
+
+u2.BoatMotorWinter = u2.BoatMotor;
+u2.BoatMotorUltra = u2.BoatMotor;
+
+function updateForceLoop(u163)
+    spawn(function() -- Line: 669
+        -- upvalues: u163 (copy)
+        local v164 = tick();
+        u163.ForceLoopTick.Value = v164;
+
+        while u163.Parent and (u163.DirectionThrust.Value ~= 0 and u163.ForceLoopTick.Value == v164) do
+            local LookVector = u163.PrimaryPart.CFrame.LookVector;
+            local Unit = Vector3.new(LookVector.X, 0, LookVector.Z).Unit;
+            u163.PrimaryPart.BV.Velocity = Unit * u163.MaxSpeed.Value * u163.DirectionThrust.Value;
+            u163.PrimaryPart.BV.MaxForce = Vector3.new(u163.MaxThrustForce.Value, 0, u163.MaxThrustForce.Value);
+            local v165 = u163.Motor.Bottom:GetChildren();
+
+            for i = 1, #v165 do
+                if v165[i].Name == "WeldBlade" then
+                    local v166 = v165[i];
+                    v166.C1 = (v166.Part1.CFrame * CFrame.Angles(0, 0, (math.rad(-30 * u163.DirectionThrust.Value)))):toObjectSpace(v166.Part0.CFrame);
+                end;
+            end;
+
+            wait();
+        end;
+
+        if not u163.Parent then
+            return;
+        end;
+
+        u163.PrimaryPart.BV.MaxForce = Vector3.new(0, 0, 0);
+    end);
+end;
+
+u2.FrontWheel = {};
+u2.FrontWheel.canSetNetworkOwner = true;
+u2.FrontWheel.getState = u2.BoatMotor.getState;
+u2.FrontWheel.calState = u2.BoatMotor.calState;
+
+function u2.FrontWheel.setState(p167, p168, p169, p170, p171, p172, p173, p174, p175, p176, p177, p178) -- Line: 706
+    -- upvalues: u2 (copy), u4 (copy)
+    local v179, v180, v181, v182 = u2[p168.Name].getState(p168);
+    local v183;
+
+    if v179 == p175 then
+        v183 = true;
+    else
+        setState(p168, "Forward", p175);
+        v183 = true;
+    end;
+
+    if v180 ~= p176 then
+        setState(p168, "Backward", p176);
+        v183 = true;
+    end;
+
+    if v181 ~= p177 then
+        setState(p168, "Left", p177);
+        v183 = true;
+    end;
+
+    if v182 ~= p178 then
+        setState(p168, "Right", p178);
+        v183 = true;
+    end;
+
+    if not u4 and v183 then
+        if p171 then
+            p171 = p171.PrimaryPart;
+        end;
+
+        local v184 = findSpinFactor(p168.PrimaryPart, p171);
+
+        if p168:FindFirstChild("SpinFactor") then
+            v184 = p168.SpinFactor.Value;
+        else
+            local IntValue = Instance.new("IntValue");
+            IntValue.Name = "SpinFactor";
+            IntValue.Value = v184;
+            IntValue.Parent = p168;
+        end;
+
+        if p168.ReverseSpin.Value then
+            v184 = -v184;
+        end;
+
+        local v185 = p168.MaxSpeed.Value * v184;
+        local v186 = not p175 and 0 or v185;
+
+        if p176 then
+            v186 = v186 - v185;
+        end;
+
+        local v187;
+
+        if p168.PrimaryPart.Att.Orientation.Y <= -59 then
+            v187 = p168.PrimaryPart.Att.Orientation.Y >= -61;
+        else
+            v187 = false;
+        end;
+
+        local v188;
+
+        if p168.PrimaryPart.Att.Orientation.Y <= -119 then
+            v188 = p168.PrimaryPart.Att.Orientation.Y >= -121;
+        else
+            v188 = false;
+        end;
+
+        local v189;
+
+        if p177 then
+            v189 = not p178;
+        else
+            v189 = p177;
+        end;
+
+        if p178 then
+            p178 = not p177;
+        end;
+
+        p168.PrimaryPart.HingeConstraint.AngularVelocity = v186;
+
+        if not v187 and v189 then
+            p168.PrimaryPart.Att.Orientation = Vector3.new(0, -60, 0);
+
+            return v183;
+        end;
+
+        if not v188 and p178 then
+            p168.PrimaryPart.Att.Orientation = Vector3.new(0, -120, 0);
+
+            return v183;
+        end;
+
+        if not v189 and (not p178 and (v187 or v188)) then
+            p168.PrimaryPart.Att.Orientation = Vector3.new(0, -90, 0);
+        end;
+    end;
+
+    return v183;
+end;
+
+u2.BackWheel = u2.FrontWheel;
+u2.BackWheelCookie = u2.FrontWheel;
+u2.BackWheelMint = u2.FrontWheel;
+u2.HugeBackWheel = u2.FrontWheel;
+u2.FrontWheelCookie = u2.FrontWheel;
+u2.FrontWheelMint = u2.FrontWheel;
+u2.HugeFrontWheel = u2.FrontWheel;
+u2.CarSeat = {};
+
+function u2.CarSeat.getState(p190) -- Line: 786
+    -- upvalues: u4 (copy)
+    local v191 = {};
+
+    if not u4 then
+        for i, v in p190:GetAttributes() do
+            if v then
+                v191[i] = v;
+            end;
+        end;
+    end;
+
+    return v191;
+end;
+
+u2.CarSeat.calState = u2.CarSeat.getState;
+
+function u2.CarSeat.setState(p192, p193, p194, p195, p196, p197, p198, p199, p200) -- Line: 799
+    local v201 = false;
+
+    for i, v in pairs(p200) do
+        local v202 = "Input" .. i;
+
+        if p193:GetAttribute(v202) ~= v then
+            setState(p193, v202, v or nil);
+            v201 = true;
+        end;
+    end;
+
+    if p199 and v201 then
+        local v203 = p193:GetChildren();
+        addConnectionsToQueue(v203, p192, p194, p195, p193, p197, p198);
+    end;
+
+    return v201;
+end;
+
+u2.PilotSeat = {};
+u2.PilotSeat.canSetNetworkOwner = true;
+u2.PilotSeat.getState = u2.CarSeat.getState;
+u2.PilotSeat.calState = u2.CarSeat.calState;
+
+function u2.PilotSeat.setState(p204, u205, p206, p207, p208, p209, p210, p211, p212) -- Line: 824
+    -- upvalues: u4 (copy), u3 (ref), RunService (copy)
+    local v213 = false;
+
+    for i, v in pairs(p212) do
+        local v214 = "Input" .. i;
+
+        if u205:GetAttribute(v214) ~= v then
+            setState(u205, v214, v or nil);
+            v213 = true;
+        end;
+    end;
+
+    if p211 and v213 then
+        local v215 = u205:GetChildren();
+        addConnectionsToQueue(v215, p204, p206, p207, u205, p209, p210);
+    end;
+
+    if not u4 then
+        local v216 = u205.BindDown.Value == -1;
+        local v217 = u205.BindLeft.Value == -1;
+        local v218 = u205.BindRight.Value == -1;
+        local v219;
+
+        if u205.BindUp.Value == -1 then
+            v219 = u205:GetAttribute("Input" .. tostring(Enum.KeyCode.W.Value)) or (u205:GetAttribute("Input" .. tostring(Enum.KeyCode.Up.Value)) or false);
+        else
+            v219 = u205:GetAttribute("Input" .. tostring(u205.BindUp.Value)) or false;
+        end;
+
+        local v220;
+
+        if v216 then
+            v220 = u205:GetAttribute("Input" .. tostring(Enum.KeyCode.S.Value)) or (u205:GetAttribute("Input" .. tostring(Enum.KeyCode.Down.Value)) or false);
+        else
+            v220 = u205:GetAttribute("Input" .. tostring(u205.BindDown.Value)) or false;
+        end;
+
+        local v221;
+
+        if v217 then
+            v221 = u205:GetAttribute("Input" .. tostring(Enum.KeyCode.A.Value)) or (u205:GetAttribute("Input" .. tostring(Enum.KeyCode.Left.Value)) or false);
+        else
+            v221 = u205:GetAttribute("Input" .. tostring(u205.BindLeft.Value)) or false;
+        end;
+
+        local v222;
+
+        if v218 then
+            v222 = u205:GetAttribute("Input" .. tostring(Enum.KeyCode.D.Value)) or (u205:GetAttribute("Input" .. tostring(Enum.KeyCode.Right.Value)) or false);
+        else
+            v222 = u205:GetAttribute("Input" .. tostring(u205.BindRight.Value)) or false;
+        end;
+
+        local u223 = 0;
+
+        if v219 then
+            u223 = u223 + 2;
+        end;
+
+        if v220 then
+            u223 = u223 - 2;
+        end;
+
+        local u224 = 0;
+
+        if v221 then
+            u224 = u224 + 2;
+        end;
+
+        if v222 then
+            u224 = u224 - 2;
+        end;
+
+        if u3 then
+            u3:Disconnect();
+        end;
+
+        if u223 == 0 and u224 == 0 then
+            u205.VehicleSeat.BAV.MaxTorque = Vector3.new(0, 0, 0);
+            task.spawn(function() -- Line: 917
+                -- upvalues: RunService (ref), u205 (copy)
+                RunService.Heartbeat:Wait();
+                u205.VehicleSeat.AssemblyAngularVelocity = Vector3.new(0, 0, 0);
+            end);
+        else
+            u205.VehicleSeat.BAV.MaxTorque = Vector3.new(inf, inf, inf);
+            u3 = RunService.Heartbeat:Connect(function() -- Line: 909
+                -- upvalues: u205 (copy), u223 (ref), u224 (ref)
+                if u205.Parent then
+                    u205.VehicleSeat.BAV.AngularVelocity = u205.VehicleSeat.CFrame.RightVector * u223 + u205.VehicleSeat.CFrame.UpVector * u224;
+                end;
+            end);
+        end;
+    end;
+
+    return v213;
+end;
+
+u2.RemoteController = u2.CarSeat;
+u2.Lever = {};
+
+function u2.Lever.getState(p225) -- Line: 932
+    -- upvalues: u4 (copy), GetStoredBlockState (copy)
+    local v226 = p225:GetAttribute("On") or false;
+
+    if u4 then
+        v226 = GetStoredBlockState:Invoke(p225).On or false;
+    end;
+
+    return v226;
+end;
+
+function u2.Lever.calState(p227, p228, p229, p230, p231) -- Line: 940
+    -- upvalues: u2 (copy)
+    return u2.Lever.getState(p231);
+end;
+
+function u2.Lever.setState(p232, p233, p234, p235, p236, p237, p238, p239, p240, p241) -- Line: 943
+    -- upvalues: u2 (copy), u4 (copy), CollectionService (copy)
+    local v242 = p241 or false;
+    local v243 = u2[p233.Name].getState(p233);
+    local v244 = not u4 and p233:FindFirstChild("Lever") and v244:FindFirstChild("ColorPart");
+
+    if v243 ~= p240 then
+        setState(p233, "On", p240);
+        v242 = true;
+
+        if not u4 then
+            local Lever = p233.Lever;
+            local Animator = Lever.AnimationController.Animator;
+            local v245 = Animator:GetPlayingAnimationTracks();
+
+            if p240 then
+                Animator:LoadAnimation(Lever.Down):Play();
+            else
+                for i = 1, #v245 do
+                    v245[i]:Stop();
+                end;
+            end;
+
+            p233.PrimaryPart.Sound:Play();
+        end;
+    end;
+
+    if not u4 and v244 then
+        if p233:HasTag("Legacy") then
+            v244.Color = Color3.fromRGB(237, 234, 234);
+        elseif p240 then
+            v244.Color = Color3.fromRGB(0, 255, 0);
+        else
+            v244.Color = Color3.fromRGB(255, 0, 0);
+        end;
+    end;
+
+    if v242 and p239 then
+        if not CollectionService:HasTag(p233, "Legacy") then
+            local v246 = p233:GetChildren();
+            addConnectionsToQueue(v246, p232, p240, false, p233, p237, p238);
+
+            return v242;
+        end;
+
+        runLegacyBlock(p232, p233, p234, p235, p236, p237, p238, p239, p240);
+    end;
+
+    return v242;
+end;
+
+u2.Switch = {};
+u2.Switch.getState = u2.Lever.getState;
+u2.Switch.calState = u2.Lever.calState;
+
+function u2.Switch.setState(p247, p248, p249, p250, p251, p252, p253, p254, p255, p256) -- Line: 1001
+    -- upvalues: u2 (copy), u4 (copy), CollectionService (copy)
+    local v257 = p256 or false;
+    local v258 = u2[p248.Name].getState(p248);
+    local v259 = not u4 and p248:FindFirstChild("Part");
+
+    if v258 ~= p255 then
+        setState(p248, "On", p255);
+        v257 = true;
+
+        if not u4 then
+            local Switch = p248.Switch;
+            local Animator = Switch.AnimationController.Animator;
+            local v260 = Animator:GetPlayingAnimationTracks();
+
+            if p255 then
+                Animator:LoadAnimation(Switch.Down):Play();
+                p248.PrimaryPart.SoundOn:Play();
+            else
+                for i = 1, #v260 do
+                    v260[i]:Stop();
+                end;
+
+                p248.PrimaryPart.SoundOff:Play();
+            end;
+        end;
+    end;
+
+    if not u4 and v259 then
+        if p248:HasTag("Legacy") then
+            v259.Color = Color3.fromRGB(60, 72, 65);
+        elseif p255 then
+            v259.Color = Color3.fromRGB(0, 255, 0);
+        else
+            v259.Color = Color3.fromRGB(255, 0, 0);
+        end;
+    end;
+
+    if v257 and p254 then
+        if not CollectionService:HasTag(p248, "Legacy") then
+            local v261 = p248:GetChildren();
+            addConnectionsToQueue(v261, p247, p255, false, p248, p252, p253);
+
+            return v257;
+        end;
+
+        runLegacyBlock(p247, p248, p249, p250, p251, p252, p253, p254, p255);
+    end;
+
+    return v257;
+end;
+
+u2.SwitchBig = {};
+u2.SwitchBig.getState = u2.Lever.getState;
+u2.SwitchBig.calState = u2.Lever.calState;
+
+function u2.SwitchBig.setState(p262, p263, p264, p265, p266, p267, p268, p269, p270, p271) -- Line: 1060
+    -- upvalues: u2 (copy), u4 (copy), CollectionService (copy)
+    local v272 = p271 or false;
+    local v273 = u2[p263.Name].getState(p263);
+    local v274 = not u4 and p263:FindFirstChild("Switch");
+    local v275;
+
+    if v274 then
+        v275 = v274:FindFirstChild("Part3");
+    else
+        v275 = v274;
+    end;
+
+    local v276;
+
+    if v274 then
+        v276 = v274:FindFirstChild("Part4");
+    else
+        v276 = v274;
+    end;
+
+    local v277;
+
+    if v274 then
+        v277 = v274:FindFirstChild("Part5");
+    else
+        v277 = v274;
+    end;
+
+    if v273 ~= p270 then
+        setState(p263, "On", p270);
+        v272 = true;
+
+        if not u4 then
+            local Switch = p263.Switch;
+            local Animator = Switch.AnimationController.Animator;
+            local v278 = Animator:GetPlayingAnimationTracks();
+
+            if p270 then
+                Animator:LoadAnimation(Switch.Down):Play();
+                p263.PrimaryPart.SoundOn:Play();
+            else
+                for i = 1, #v278 do
+                    v278[i]:Stop();
+                end;
+
+                p263.PrimaryPart.SoundOff:Play();
+            end;
+        end;
+    end;
+
+    if not u4 and v274 then
+        if p263:HasTag("Legacy") then
+            if v275 then
+                v275.Color = Color3.fromRGB(237, 234, 234);
+            end;
+
+            if v276 then
+                v276.Color = Color3.fromRGB(237, 234, 234);
+            end;
+
+            if v277 then
+                v277.Color = Color3.fromRGB(237, 234, 234);
+            end;
+        elseif p270 then
+            if v275 then
+                v275.Color = Color3.fromRGB(0, 255, 0);
+            end;
+
+            if v276 then
+                v276.Color = Color3.fromRGB(0, 255, 0);
+            end;
+
+            if v277 then
+                v277.Color = Color3.fromRGB(0, 255, 0);
+            end;
+        else
+            if v275 then
+                v275.Color = Color3.fromRGB(255, 0, 0);
+            end;
+
+            if v276 then
+                v276.Color = Color3.fromRGB(255, 0, 0);
+            end;
+
+            if v277 then
+                v277.Color = Color3.fromRGB(255, 0, 0);
+            end;
+        end;
+    end;
+
+    if v272 and p269 then
+        if not CollectionService:HasTag(p263, "Legacy") then
+            local v279 = p263:GetChildren();
+            addConnectionsToQueue(v279, p262, p270, false, p263, p267, p268);
+
+            return v272;
+        end;
+
+        runLegacyBlock(p262, p263, p264, p265, p266, p267, p268, p269, p270);
+    end;
+
+    return v272;
+end;
+
+u2.Button = {};
+u2.Button.getState = u2.Lever.getState;
+u2.Button.calState = u2.Lever.calState;
+
+function u2.Button.setState(p280, p281, p282, p283, p284, p285, p286, p287, p288, p289) -- Line: 1146
+    -- upvalues: u2 (copy), u4 (copy), CollectionService (copy)
+    local v290 = p289 or false;
+    local v291 = u2[p281.Name].getState(p281);
+    local v292 = not u4 and p281:FindFirstChild("Button");
+
+    if v291 ~= p288 then
+        setState(p281, "On", p288);
+        v290 = true;
+
+        if not u4 then
+            if p288 then
+                p281.PrimaryPart.Sound:Play();
+                goButtonDown(v292);
+            else
+                goButtonUp(v292);
+            end;
+        end;
+    end;
+
+    if v292 then
+        if u4 then
+            if v292:HasTag("Legacy") then
+                if not v292:HasTag("CantPaint") then
+                    v292:AddTag("CantPaint");
+                end;
+            elseif v292:HasTag("CantPaint") then
+                v292:RemoveTag("CantPaint");
+            end;
+        elseif p281:HasTag("Legacy") then
+            v292.Color = Color3.fromRGB(237, 234, 234);
+        elseif p288 then
+            v292.Color = Color3.fromRGB(0, 255, 0);
+        else
+            local PrimaryPart = p281.PrimaryPart;
+
+            if PrimaryPart and PrimaryPart.Color ~= game.ReplicatedStorage.BuildingParts.Button.PrimaryPart.Color then
+                v292.Color = PrimaryPart.Color;
+            else
+                v292.Color = Color3.fromRGB(255, 0, 0);
+            end;
+        end;
+    end;
+
+    if v290 and p287 then
+        if not CollectionService:HasTag(p281, "Legacy") then
+            local v293 = p281:GetChildren();
+            addConnectionsToQueue(v293, p280, p288, false, p281, p285, p286);
+
+            return v290;
+        end;
+
+        runLegacyBlock(p280, p281, p282, p283, p284, p285, p286, p287, p288);
+    end;
+
+    return v290;
+end;
+
+function goButtonDown(p294)
+    local v295 = game.ReplicatedStorage.BuildingParts[p294.Parent.Name].Button.Size - Vector3.new(0.2, 0, 0);
+    p294.CanCollide = false;
+    p294:BreakJoints();
+    p294.Size = v295;
+    WeldTogether(p294.Parent.PrimaryPart, p294);
+end;
+
+function goButtonUp(p296)
+    local Size = game.ReplicatedStorage.BuildingParts[p296.Parent.Name].Button.Size;
+    p296:BreakJoints();
+    p296.Size = Size;
+    WeldTogether(p296.Parent.PrimaryPart, p296);
+end;
+
+u2.SensorBlock = {};
+u2.SensorBlock.getState = u2.Lever.getState;
+u2.SensorBlock.calState = u2.Lever.calState;
+
+function u2.SensorBlock.setState(p297, p298, p299, p300, p301, p302, p303, p304, p305, p306) -- Line: 1232
+    -- upvalues: u2 (copy), u4 (copy)
+    local v307 = u2[p298.Name].getState(p298);
+    local PrimaryPart = p298.PrimaryPart;
+    local v308;
+
+    if v307 == p305 then
+        v308 = false;
+    else
+        setState(p298, "On", p305);
+        v308 = true;
+
+        if not u4 and PrimaryPart then
+            if p305 then
+                PrimaryPart.Color = Color3.fromRGB(0, 255, 0);
+            else
+                PrimaryPart.Color = Color3.fromRGB(255, 0, 0);
+            end;
+        end;
+    end;
+
+    if v308 and p304 then
+        local v309 = p298:GetChildren();
+        addConnectionsToQueue(v309, p297, p305, false, p298, p302, p303);
+    end;
+
+    return v308;
+end;
+
+u2.Delay = {};
+
+function u2.Delay.getState(p310) -- Line: 1263
+    -- upvalues: u4 (copy), GetStoredBlockState (copy)
+    local v311 = p310:GetAttribute("On") or false;
+
+    if u4 then
+        v311 = GetStoredBlockState:Invoke(p310).On or false;
+    end;
+
+    local v312;
+
+    if u4 then
+        v312 = p310.RunningWaitTimeOnServer.Value ~= 0;
+    else
+        v312 = p310.RunningWaitTime.Value ~= 0;
+    end;
+
+    return v311, v312, p310.RunningWaitTimeOnServer.Value;
+end;
+
+function u2.Delay.calState(p313, p314, p315, p316, p317) -- Line: 1281
+    -- upvalues: u2 (copy), CollectionService (copy)
+    local v318 = false;
+    local _, v319 = u2[p317.Name].getState(p317);
+    local v320 = p317.BindActivate.Value == -1;
+
+    if v319 then
+        return v318, v319;
+    end;
+
+    local v321 = p317:GetChildren();
+
+    for i = 1, #v321 do
+        local v322 = v321[i];
+        local v323 = v322:IsA("ObjectValue");
+
+        if v323 then
+            if v322.Name == "ControllerRef" then
+                v323 = v322.Value;
+            else
+                v323 = false;
+            end;
+        end;
+
+        local v324;
+
+        if v323 then
+            v324 = CollectionService:HasTag(v322.Value, "SwitchInput");
+        else
+            v324 = v323;
+        end;
+
+        if v323 and (v323 == p316 and v324) then
+            if p314 then
+                return p314, v319;
+            end;
+        elseif v323 and not v323:HasTag("Legacy") then
+            if v323.Parent then
+                local v325;
+
+                if v324 then
+                    v325 = v323:GetAttribute("On");
+                else
+                    v325 = v324;
+                end;
+
+                if v324 then
+                    v318 = v325 and true or v318;
+                elseif v320 then
+                    v318 = v323:GetAttribute("Input" .. tostring(Enum.KeyCode.F.Value)) or v323:GetAttribute("Input" .. tostring(Enum.KeyCode.ButtonR2.Value)) or false;
+                else
+                    v318 = v323:GetAttribute("Input" .. tostring(p317.BindActivate.Value)) or false;
+                end;
+
+                if v318 then
+                    return v318, v319;
+                end;
+            else
+                v322:Destroy();
+            end;
+        end;
+    end;
+
+    return v318, v319;
+end;
+
+function u2.Delay.setState(u326, u327, u328, u329, u330, u331, u332, u333, u334, p335, u336) -- Line: 1338
+    -- upvalues: u2 (copy), CollectionService (copy), u4 (copy), TweenService (copy), LocalPlayer (copy), u8 (ref)
+    local v337 = false;
+    local v338 = u336 or u327.WaitDuration.Value;
+    local v339 = u336 ~= nil;
+    local v340 = u2.Delay.getState(u327);
+
+    if u327.Parent then
+        if CollectionService:HasTag(u327, "Legacy") then
+            if u327.Glass.BrickColor ~= BrickColor.Red() and (not u329 or u328) then
+                v337 = true;
+                setState(u327, "On", false);
+                local Value = u327.WaitDuration.Value;
+
+                if not u4 then
+                    u327.Glass.BrickColor = BrickColor.Red();
+                    u327.Part.BrickColor = BrickColor.Red();
+                end;
+
+                delay(Value, function() -- Line: 1498
+                    -- upvalues: u327 (copy), u4 (ref), u333 (copy), u336 (copy), LocalPlayer (ref), u326 (copy), u328 (copy), u329 (copy), u330 (copy), u331 (copy), u332 (copy), u334 (ref)
+                    if not (u327.Parent and u327:HasTag("Legacy")) then
+                        return;
+                    end;
+
+                    u327.Glass.Color = game.ReplicatedStorage.BuildingParts[u327.Name].Glass.Color;
+                    u327.Part.Color = game.ReplicatedStorage.BuildingParts[u327.Name].Part.Color;
+
+                    if not u4 and (u333 or u336 and (u336 > 0 and LocalPlayer.UserId == u326)) then
+                        runLegacyBlock(u326, u327, u328, u329, u330, u331, u332, u333, u334);
+                    end;
+                end);
+            end;
+        elseif not p335 and v340 ~= u334 or v339 then
+            local RunningWaitTime = u327.RunningWaitTime;
+
+            if u4 then
+                RunningWaitTime = u327.RunningWaitTimeOnServer;
+            end;
+
+            if v339 then
+                setState(u327, "On", u334);
+
+                if not u4 then
+                    if u334 then
+                        u327.Glass.Color = Color3.fromRGB(0, 255, 0);
+                        u327.Part.Color = Color3.fromRGB(0, 255, 0);
+                    else
+                        u327.Glass.Color = game.ReplicatedStorage.BuildingParts[u327.Name].Glass.Color;
+                        u327.Part.Color = game.ReplicatedStorage.BuildingParts[u327.Name].Part.Color;
+                    end;
+                end;
+
+                v340 = u334;
+
+                if u336 > 0 then
+                    u334 = not u334;
+                end;
+
+                v337 = true;
+            end;
+
+            if v340 ~= u334 or v339 and u336 > 0 then
+                local v341, u342;
+
+                if u4 then
+                    v341 = nil;
+                    u342 = nil;
+                else
+                    u342 = u327.PPart.Gui;
+                    v341 = u342.Frame.Bar;
+                end;
+
+                RunningWaitTime.Value = v338;
+                local v343 = TweenService:Create(RunningWaitTime, TweenInfo.new(v338, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {
+                    Value = 0
+                });
+                v343:Play();
+                v343.Completed:Connect(function(p344) -- Line: 1400
+                    -- upvalues: u327 (copy), u4 (ref), u342 (ref), u334 (ref), u333 (copy), u336 (copy), LocalPlayer (ref), u326 (copy), u2 (ref), u331 (copy), u332 (copy), u8 (ref)
+                    if p344 ~= Enum.PlaybackState.Completed or not u327.Parent then
+                        return;
+                    end;
+
+                    if u327:HasTag("Legacy") then
+                        if not u4 then
+                            u342.Enabled = false;
+                        end;
+
+                        return;
+                    end;
+
+                    setState(u327, "On", u334);
+
+                    if not u4 then
+                        if u334 then
+                            u327.Glass.Color = Color3.fromRGB(0, 255, 0);
+                            u327.Part.Color = Color3.fromRGB(0, 255, 0);
+                        else
+                            u327.Glass.Color = game.ReplicatedStorage.BuildingParts[u327.Name].Glass.Color;
+                            u327.Part.Color = game.ReplicatedStorage.BuildingParts[u327.Name].Part.Color;
+                        end;
+
+                        u342.Enabled = false;
+                    end;
+
+                    if not u4 and (u333 or u336 and (u336 > 0 and LocalPlayer.UserId == u326)) then
+                        if u334 ~= u2[u327.Name].calState(u326, false, false, false, u327) then
+                            local v345 = {
+                                {
+                                    u327,
+                                    u334,
+                                    false,
+                                    false,
+                                    u331,
+                                    u332,
+                                    true,
+                                    false
+                                },
+                                true
+                            };
+
+                            if not u8[u326] then
+                                u8[u326] = {};
+                            end;
+
+                            table.insert(u8[u326], v345);
+                        end;
+
+                        local v346 = u327:GetChildren();
+                        addConnectionsToQueue(v346, u326, u334, false, u327, u331, u332);
+                        checkToRunQueue(u326);
+                    end;
+                end);
+
+                if u4 then
+                    v337 = true;
+                else
+                    if u334 then
+                        v341.Size = UDim2.new(0, 0, 1, 0);
+                        v341.Position = UDim2.new(0, 0, 0, 0);
+                        v341.AnchorPoint = Vector2.new(0, 0);
+                        v341.BackgroundColor3 = Color3.fromRGB(0, 255, 0);
+                        local v347 = {
+                            Size = UDim2.new(1, 0, 1, 0)
+                        };
+                        TweenService:Create(v341, TweenInfo.new(v338, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), v347):Play();
+                    else
+                        v341.Size = UDim2.new(1, 0, 1, 0);
+                        v341.Position = UDim2.new(1, 0, 0, 0);
+                        v341.AnchorPoint = Vector2.new(1, 0);
+                        v341.BackgroundColor3 = Color3.fromRGB(255, 0, 0);
+                        local v348 = {
+                            Size = UDim2.new(0, 0, 1, 0)
+                        };
+                        TweenService:Create(v341, TweenInfo.new(v338, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), v348):Play();
+                    end;
+
+                    u342.Enabled = true;
+                    v337 = true;
+                end;
+            end;
+        end;
+    end;
+
+    return v337;
+end;
+
+function runLegacyBlock(p349, p350, p351, p352, p353, p354, p355, p356, p357)
+    -- upvalues: u2 (copy)
+    local v358 = p350:GetChildren();
+    local v359 = {};
+
+    for i = 1, #v358 do
+        local v360 = v358[i];
+
+        if v360:IsA("Beam") then
+            if v360.Attachment1 and (v360.Attachment1.Parent and (v360.Attachment1.Parent.Parent and v360.Attachment1.Parent.Parent.Parent)) then
+                local Parent = v360.Attachment1.Parent.Parent;
+                local v361 = 1;
+                local v362;
+
+                if u2[Parent.Name].stateless then
+                    v362 = {};
+                else
+                    local v363, v364, v365, v366 = u2[Parent.Name].getState(Parent);
+                    v362 = Parent.Name == "Delay" and { v363 } or {
+                        v363,
+                        v364,
+                        v365,
+                        v366
+                    };
+
+                    if p352 then
+                        local BindUp = Parent:FindFirstChild("BindUp");
+                        local BindDown = Parent:FindFirstChild("BindDown");
+                        local BindLeft = Parent:FindFirstChild("BindLeft");
+                        local BindRight = Parent:FindFirstChild("BindRight");
+
+                        if Parent:FindFirstChild("BindFire") then
+                            if Parent.BindFire.Value == -1 then
+                                if p352 == Enum.KeyCode.F or p352 == Enum.KeyCode.ButtonR2 then
+                                    v362[1] = not v362[1];
+                                end;
+                            else
+                                v362 = p352.Value == Parent.BindFire.Value and { not v363 } or v362;
+                            end;
+                        end;
+
+                        if BindUp then
+                            if Parent.BindUp.Value == -1 then
+                                if p352 == Enum.KeyCode.W or (p352 == Enum.KeyCode.ButtonR2 or p352 == Enum.KeyCode.Up) then
+                                    v362[v361] = not v362[v361];
+                                    v361 = v361 + 1;
+
+                                    if Parent.Name == "Piston" then
+                                        v362 = { true, false };
+                                    end;
+                                end;
+                            elseif p352.Value == Parent.BindUp.Value then
+                                v362[v361] = not v362[v361];
+                                v361 = v361 + 1;
+
+                                if Parent.Name == "Piston" then
+                                    v362 = { true, false };
+                                end;
+                            end;
+                        end;
+
+                        if BindDown then
+                            if Parent.BindDown.Value == -1 then
+                                if p352 == Enum.KeyCode.S or (p352 == Enum.KeyCode.ButtonR1 or p352 == Enum.KeyCode.Down) then
+                                    v362[v361] = not v362[v361];
+                                    v361 = v361 + 1;
+
+                                    if Parent.Name == "Piston" then
+                                        v362 = { false, true };
+                                    end;
+                                end;
+                            elseif p352.Value == Parent.BindDown.Value then
+                                v362[v361] = not v362[v361];
+                                v361 = v361 + 1;
+
+                                if Parent.Name == "Piston" then
+                                    v362 = { false, true };
+                                end;
+                            end;
+                        end;
+
+                        if BindLeft then
+                            if Parent.BindLeft.Value == -1 then
+                                if p352 == Enum.KeyCode.A or p352 == Enum.KeyCode.Left then
+                                    v362[v361] = not v362[v361];
+                                    v361 = v361 + 1;
+                                end;
+                            elseif p352.Value == Parent.BindLeft.Value then
+                                v362[v361] = not v362[v361];
+                                v361 = v361 + 1;
+                            end;
+                        end;
+
+                        if BindRight then
+                            if Parent.BindRight.Value == -1 then
+                                if p352 == Enum.KeyCode.D or p352 == Enum.KeyCode.Right then
+                                    v362[v361] = not v362[v361];
+                                    local _ = v361 + 1;
+                                end;
+                            elseif p352.Value == Parent.BindRight.Value then
+                                v362[v361] = not v362[v361];
+                                local _ = v361 + 1;
+                            end;
+                        end;
+                    else
+                        v362[1] = not v362[1];
+
+                        if Parent.Name == "Piston" then
+                            v362[2] = not v362[1];
+                        end;
+                    end;
+                end;
+
+                local v367 = {
+                    Parent,
+                    p351,
+                    p352,
+                    p350,
+                    p354,
+                    p355,
+                    true,
+                    true,
+                    table.unpack(v362)
+                };
+                table.insert(v359, v367);
+            elseif v360.Attachment1 == nil or (v360.Attachment1.Parent == nil or (v360.Attachment1.Parent.Parent == nil or v360.Attachment1.Parent.Parent.Parent == nil)) then
+                v360:Destroy();
+            end;
+        end;
+    end;
+
+    if v359[1] then
+        u2.addBulkToRunQueue(p349, v359);
+    end;
+end;
+
+u2.Gate = {};
+u2.Gate.getState = u2.Lever.getState;
+
+function u2.Gate.calState(p368, p369, p370, p371, p372) -- Line: 1673
+    -- upvalues: CollectionService (copy)
+    local Value = p372.And.Value;
+    local Value2 = p372.Or.Value;
+    local Value3 = p372.And.Value;
+    local Value4 = p372.Xor.Value;
+    local Value5 = p372.Not.Value;
+    local v373 = p372.BindActivate.Value == -1;
+    local v374 = p372:GetChildren();
+    local v375 = false;
+
+    for i = 1, #v374 do
+        local v376 = v374[i];
+        local v377 = v376:IsA("ObjectValue");
+
+        if v377 then
+            if v376.Name == "ControllerRef" then
+                v377 = v376.Value;
+            else
+                v377 = false;
+            end;
+        end;
+
+        if v377 and not v377:HasTag("Legacy") then
+            if v377.Parent then
+                local v378 = CollectionService:HasTag(v376.Value, "SwitchInput");
+                local v379;
+
+                if v378 then
+                    v379 = v377:GetAttribute("On");
+                else
+                    v379 = v378;
+                end;
+
+                local v380 = false;
+                v375 = true;
+                local v381;
+
+                if v377 == p371 and v378 then
+                    v381 = p369;
+                elseif v378 then
+                    v381 = v379 and true or v380;
+                elseif v373 then
+                    v381 = v377:GetAttribute("Input" .. tostring(Enum.KeyCode.F.Value)) or v377:GetAttribute("Input" .. tostring(Enum.KeyCode.ButtonR2.Value)) or false;
+                else
+                    v381 = v377:GetAttribute("Input" .. tostring(p372.BindActivate.Value)) or false;
+                end;
+
+                if Value2 then
+                    Value = Value or v381;
+
+                    if Value then
+                        break;
+                    end;
+                elseif Value3 then
+                    Value = Value and v381;
+                elseif Value4 and v381 then
+                    Value = not Value;
+                end;
+            else
+                v376:Destroy();
+            end;
+        end;
+    end;
+
+    if Value3 and not v375 then
+        Value = false;
+    end;
+
+    if Value5 then
+        Value = not Value;
+    end;
+
+    return Value;
+end;
+
+function u2.Gate.setState(p382, u383, p384, p385, p386, p387, p388, p389, p390) -- Line: 1753
+    -- upvalues: u2 (copy), u4 (copy)
+    local v391;
+
+    if u2[u383.Name].getState(u383) == p390 then
+        v391 = false;
+    else
+        setState(u383, "On", p390);
+        v391 = true;
+
+        if not u4 and (u383.Parent and u383.PrimaryPart) then
+            local u392 = Color3.fromRGB(0, 255, 0);
+
+            if not p390 then
+                u392 = u383.PrimaryPart.Color;
+            end;
+
+            local v393, v394, v395 = u392:ToHSV();
+            u383.Part.Color = Color3.fromHSV(v393, v394, v395 - math.random(0, 100) / 100 * 0.2);
+            local u396 = tick();
+            u383:SetAttribute("lastUpdateTick", u396);
+            task.delay(0, function() -- Line: 1778
+                -- upvalues: u396 (copy), u383 (copy), u392 (ref)
+                if u396 == u383:GetAttribute("lastUpdateTick") then
+                    u383.Part.Color = u392;
+                    u383:SetAttribute("lastUpdateTick", nil);
+                end;
+            end);
+        end;
+    end;
+
+    if v391 and p389 then
+        local v397 = u383:GetChildren();
+        addConnectionsToQueue(v397, p382, p390, false, u383, p387, p388);
+    end;
+
+    return v391;
+end;
+
+u2.LightBulb = {};
+u2.LightBulb.getState = u2.Lever.getState;
+
+function u2.LightBulb.calState(p398, p399, p400, p401, p402) -- Line: 1805
+    -- upvalues: CollectionService (copy), u2 (copy)
+    local v403 = false;
+    local v404 = p402.BindFire.Value == -1;
+
+    if not p400 then
+        local v405 = p402:GetChildren();
+
+        for i = 1, #v405 do
+            local v406 = v405[i];
+            local v407 = v406:IsA("ObjectValue");
+
+            if v407 then
+                if v406.Name == "ControllerRef" then
+                    v407 = v406.Value;
+                else
+                    v407 = false;
+                end;
+            end;
+
+            if v407 and not v407:HasTag("Legacy") then
+                if v407.Parent then
+                    local Value = v406.Value;
+                    local v408 = CollectionService:HasTag(v406.Value, "SwitchInput");
+                    local v409;
+
+                    if v408 then
+                        v409 = Value:GetAttribute("On");
+                    else
+                        v409 = v408;
+                    end;
+
+                    v403 = v408 and v409 and true or v403;
+
+                    if v403 then
+                        return v403;
+                    end;
+                else
+                    v406:Destroy();
+                end;
+            end;
+        end;
+
+        return v403;
+    end;
+
+    v403 = u2[p402.Name].getState(p402);
+
+    if p399 then
+        if v404 then
+            if p400 == Enum.KeyCode.F or p400 == Enum.KeyCode.ButtonR2 then
+                return not v403;
+            end;
+        elseif p400.Value == p402.BindFire.Value then
+            v403 = not v403;
+        end;
+    end;
+
+    return v403;
+end;
+
+function u2.LightBulb.setState(p410, p411, p412, p413, p414, p415, p416, p417, p418) -- Line: 1866
+    -- upvalues: u2 (copy), u4 (copy)
+    local v419;
+
+    if u2[p411.Name].getState(p411) == p418 then
+        v419 = false;
+    else
+        setState(p411, "On", p418);
+        v419 = true;
+
+        if not u4 and (p411.Parent and (p411.PrimaryPart and (p411:FindFirstChild("BulbEnd") and (p411:FindFirstChild("BulbMid") and p411:FindFirstChild("BulbStart"))))) then
+            if p418 then
+                p411.BulbEnd.Material = Enum.Material.Neon;
+                p411.BulbMid.Material = Enum.Material.Neon;
+                p411.BulbStart.Material = Enum.Material.Neon;
+                p411.BulbEnd.PointLight.Color = p411.BulbEnd.Color;
+                p411.BulbEnd.PointLight.Enabled = true;
+
+                return v419;
+            end;
+
+            p411.BulbEnd.Material = Enum.Material.Glass;
+            p411.BulbMid.Material = Enum.Material.Glass;
+            p411.BulbStart.Material = Enum.Material.Glass;
+            p411.BulbEnd.PointLight.Enabled = false;
+        end;
+    end;
+
+    return v419;
+end;
+
+u2.Note = {};
+u2.Note.stateless = true;
+
+function u2.Note.willActivate(p420, p421, p422, p423) -- Line: 1902
+    if not (p422 and p421) then
+        return p421;
+    end;
+
+    if p420.BindFire.Value == -1 then
+        if p422 == Enum.KeyCode.F or p422 == Enum.KeyCode.ButtonR2 then
+            return true;
+        end;
+    elseif p422.Value == p420.BindFire.Value then
+        return true;
+    end;
+
+    return false;
+end;
+
+function u2.Note.setState(p424, p425, p426, p427, p428, p429, p430, p431) -- Line: 1922
+    -- upvalues: u4 (copy), LocalPlayer (copy), CurrentCamera (copy)
+    local v432 = game.Players:GetPlayerByUserId(p424);
+
+    if not u4 and (v432 and v432.Team == LocalPlayer.Team) then
+        local PrimaryPart = p425.PrimaryPart;
+        local v433;
+
+        if CurrentCamera and PrimaryPart then
+            local v434 = PrimaryPart.Position - CurrentCamera.CFrame.Position;
+            local v435 = math.abs(v434.X);
+            local v436 = math.abs(v434.Y);
+            local v437 = math.abs(v434.Z);
+            local v438 = Vector3.new(v435, v436, v437);
+            local RollOffMaxDistance = p425.PrimaryPart.Sound.RollOffMaxDistance;
+
+            if v438.X < RollOffMaxDistance and v438.Y < RollOffMaxDistance then
+                v433 = v438.Z < RollOffMaxDistance;
+            else
+                v433 = false;
+            end;
+        else
+            v433 = false;
+        end;
+
+        if v433 then
+            playNoteFunction(p425);
+        end;
+    end;
+
+    return true;
+end;
+
+local u439 = {};
+local u440 = 0;
+
+function playNoteFunction(p441)
+    -- upvalues: u440 (ref), u439 (copy), TweenService (copy)
+    if u440 > 7 then
+        local v442 = table.remove(u439, 8);
+
+        if v442.Parent then
+            v442:Stop();
+            v442:Destroy();
+        end;
+    else
+        u440 = u440 + 1;
+    end;
+
+    local v443 = p441.PrimaryPart.Sound:Clone();
+    game.Debris:AddItem(v443, 2);
+    v443.Parent = p441.PrimaryPart;
+    v443:Play();
+    table.insert(u439, 1, v443);
+    local BaseWeld = p441.PrimaryPart.BaseWeld;
+    BaseWeld.C0 = CFrame.new(0, 0, 0);
+    local v444 = {
+        C0 = CFrame.new(0, 1, 0)
+    };
+    TweenService:Create(BaseWeld, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.InOut, 0, true), v444):Play();
+end;
+
+u2.DisplayBlock = {};
+u2.DisplayBlock.stateless = true;
+
+function u2.DisplayBlock.willActivate(p445, p446, p447, p448) -- Line: 1981
+    if p445.Parent and p445.Additive.Value then
+        return true;
+    end;
+
+    if not (p448 and (p448.Parent and p445.Parent)) then
+        return false;
+    end;
+
+    if not p447 then
+        return p446;
+    end;
+
+    if p445.BindFire.Value == -1 then
+        if p447 == Enum.KeyCode.F or p447 == Enum.KeyCode.ButtonR2 then
+            return true;
+        end;
+    elseif p447.Value == p445.BindFire.Value then
+        return true;
+    end;
+
+    return false;
+end;
+
+function u2.DisplayBlock.setState(p449, u450, p451, p452, p453, p454, p455, p456, p457) -- Line: 2007
+    -- upvalues: u4 (copy), CollectionService (copy), LocalPlayer (copy)
+    local v458 = true;
+
+    if u450.Parent then
+        local v459;
+
+        if p457 then
+            v459 = p457;
+        elseif p453 then
+            v459 = p453.PrimaryPart.Color;
+        else
+            v459 = p453;
+        end;
+
+        if not (u4 or p457) then
+            local v460 = u450.BindFire.Value == -1;
+            local v461 = 0;
+            local v462 = 0;
+            local v463 = 0;
+
+            if u450.Additive.Value then
+                local v464 = u450:GetChildren();
+
+                for i = 1, #v464 do
+                    local v465 = v464[i];
+                    local v466 = v465:IsA("ObjectValue");
+
+                    if v466 then
+                        if v465.Name == "ControllerRef" then
+                            v466 = v465.Value;
+                        else
+                            v466 = false;
+                        end;
+                    end;
+
+                    local v467;
+
+                    if v466 then
+                        v467 = v466.PrimaryPart;
+                    else
+                        v467 = v466;
+                    end;
+
+                    if v466 and (not v466:HasTag("Legacy") and v467) then
+                        if v466.Parent then
+                            local v468 = CollectionService:HasTag(v465.Value, "SwitchInput");
+                            local v469;
+
+                            if v468 then
+                                v469 = v466:GetAttribute("On");
+                            else
+                                v469 = v468;
+                            end;
+
+                            local v470 = false;
+                            local v471;
+
+                            if v466 == p453 and v468 then
+                                v471 = p451;
+                            elseif v468 then
+                                v471 = v469 and true or v470;
+                            elseif v460 then
+                                v471 = v466:GetAttribute("Input" .. tostring(Enum.KeyCode.F.Value)) or v466:GetAttribute("Input" .. tostring(Enum.KeyCode.ButtonR2.Value)) or false;
+                            else
+                                v471 = v466:GetAttribute("Input" .. tostring(u450.BindFire.Value)) or false;
+                            end;
+
+                            if v471 then
+                                local Color = v467.Color;
+                                v461 = v461 + Color.R;
+                                v462 = v462 + Color.G;
+                                v463 = v463 + Color.B;
+                            end;
+                        else
+                            v465:Destroy();
+                        end;
+                    end;
+                end;
+            else
+                if not (p451 and (p453 and p453.PrimaryPart)) then
+                    return false;
+                end;
+
+                local Color = p453.PrimaryPart.Color;
+                v461 = Color.R;
+                v462 = Color.G;
+                v463 = Color.B;
+            end;
+
+            v459 = Color3.new(math.min(v461, 1), math.min(v462, 1), (math.min(v463, 1)));
+        end;
+
+        if v458 then
+            setState(u450, "NextColor", v459);
+
+            if not u4 then
+                if p457 then
+                    u450:SetAttribute("NextColor", p457);
+                end;
+
+                if LocalPlayer:FindFirstChild("OtherData") and LocalPlayer.OtherData:FindFirstChild("CanFlash") then
+                    local v472 = u450:GetAttribute("NextColor");
+                    u450.PrimaryPart.Color = v472;
+                elseif not u450:GetAttribute("Waiting") then
+                    u450:SetAttribute("Waiting", true);
+                    local v473 = 0.33;
+                    local Size = u450.PrimaryPart.Size;
+                    local v474 = Size.X * Size.Y;
+                    local v475 = math.max(Size.X * Size.Z, Size.Y * Size.Z);
+                    local v476 = math.max(v474, v475);
+
+                    if v476 > 64 then
+                        local v477 = math.min(1, v476 / 2500);
+                        v473 = v473 + (1 - v473) * v477;
+                    end;
+
+                    task.delay(v473, function() -- Line: 2120
+                        -- upvalues: u450 (copy)
+                        if u450.Parent then
+                            u450:SetAttribute("Waiting", nil);
+                            local v478 = u450:GetAttribute("NextColor");
+                            u450.PrimaryPart.Color = v478;
+                        end;
+                    end);
+
+                    return v458, v459;
+                end;
+            end;
+        end;
+
+        return v458, v459;
+    end;
+end;
+
+u2.BoxingGlove = {};
+u2.BoxingGlove.stateless = true;
+u2.BoxingGlove.willActivate = u2.Note.willActivate;
+
+function u2.BoxingGlove.setState(u479, u480, p481, p482, p483, p484, p485, p486) -- Line: 2152
+    -- upvalues: u4 (copy), GetBlockInfo (copy), Heartbeat (copy)
+    if not u4 then
+        local u487 = u480.AniTrack.Value or u480.AnimationController.Animator:LoadAnimation(u480.PunchAnimation);
+        u480.AniTrack.Value = u487;
+        local u517 = u480.Glove.Touched:Connect(function(p488) -- Line: 2160
+            -- upvalues: u479 (copy), u480 (copy), GetBlockInfo (ref), Heartbeat (ref)
+            if p488:IsGrounded() then
+                return;
+            end;
+
+            local Parent = p488.Parent;
+
+            while Parent and (Parent.Parent ~= workspace.Blocks and not game.Players:GetPlayerFromCharacter(Parent)) do
+                Parent = Parent.Parent;
+            end;
+
+            local v489 = game.Players:GetPlayerFromCharacter(Parent);
+            local v490 = game.Players:GetPlayerByUserId(u479);
+            local Glove = u480.Glove;
+
+            if Parent then
+                local v491;
+
+                if v489 and (v489.Team == v490.Team or v489.Settings.PVP.Value and v490.Settings.PVP.Value) then
+                    v491 = v489.Character:FindFirstChildOfClass("Humanoid");
+
+                    if v491.PlatformStand then
+                        v491 = nil;
+                    end;
+                else
+                    v491 = nil;
+                end;
+
+                local Position = Glove.Position;
+                local Position2 = p488.Position;
+                local v492;
+
+                if v491 then
+                    v491.PlatformStand = true;
+                    local v493 = p488.Position.X + math.random(-4, 4);
+                    local v494 = Position.Y + 10;
+                    local v495 = p488.Position.Z + math.random(-4, 4);
+                    Position2 = Vector3.new(v493, v494, v495);
+                    v492 = 200;
+                else
+                    v492 = 20;
+                end;
+
+                if not v489 or v491 then
+                    local _, v496 = GetBlockInfo(p488);
+
+                    if v489 or v496 and (v496.Team == v490.Team or v496.Settings.PVP.Value and v490.Settings.PVP.Value) then
+                        local v497 = (Position2 - Position).Unit * v492;
+                        local v498 = math.random(-20, 20);
+                        local v499 = math.random(-20, 20);
+                        local v500 = Vector3.new(v498, v499, math.random(-20, 20));
+                        p488.AssemblyLinearVelocity = v497;
+                        p488.AssemblyAngularVelocity = v500;
+                    end;
+                end;
+
+                if v491 then
+                    (function(p501, p502) -- Line: 2213, Name: stunEffect
+                        -- upvalues: Heartbeat (ref)
+                        if not p501 then
+                            return;
+                        end;
+
+                        local Sound = Instance.new("Sound");
+                        Sound.SoundId = "rbxassetid://133218697256077";
+                        Sound.RollOffMaxDistance = 800;
+                        Sound.RollOffMinDistance = 250;
+                        Sound.Volume = 0.4;
+                        game.Debris:AddItem(Sound, 10);
+                        Sound.Parent = p501;
+                        Sound:Play();
+                        local v503 = 0;
+                        local v504 = {};
+
+                        for i = 1, 5 do
+                            local Part = Instance.new("Part");
+                            local SpecialMesh = Instance.new("SpecialMesh");
+                            SpecialMesh.MeshId = "http://www.roblox.com/asset/?id=45428961";
+                            SpecialMesh.TextureId = "http://www.roblox.com/asset/?id=45021124";
+                            SpecialMesh.Scale = Vector3.new(4, 4, 4);
+                            SpecialMesh.Parent = Part;
+                            Part.Size = Vector3.new(1, 1, 1);
+                            Part.Anchored = true;
+                            Part.CanCollide = false;
+                            Part.CanQuery = false;
+                            Part.CanTouch = false;
+                            local v505 = Part.CFrame - Part.Position + p501.Position;
+                            local CFrame2 = p501.CFrame;
+                            local v506 = math.cos(v503);
+                            local v507 = math.sin(v503);
+                            Part.CFrame = (v505 + CFrame2:vectorToWorldSpace((Vector3.new(v506, 3, v507)))) * CFrame.Angles(-0.7853981633974483, 0, 0);
+                            v504[i] = Part;
+                            game.Debris:AddItem(Part, p502);
+                            Part.Parent = workspace.TempStuff;
+                            v503 = v503 + 1.2566370614359172;
+                        end;
+
+                        local v508 = 0;
+
+                        while p502 > 0 do
+                            local v509 = Heartbeat:Wait();
+                            p502 = p502 - v509;
+                            local v510 = v508 / 10;
+
+                            for i = 1, 5 do
+                                local v511 = v504[i];
+                                v510 = v510 + 1.2566370614359172;
+                                local v512 = CFrame.Angles(0 * v509, 20 * v509, 0 * v509);
+                                local v513 = v511.CFrame - v511.Position + p501.Position;
+                                local CFrame2 = p501.CFrame;
+                                local v514 = math.cos(v510);
+                                local v515 = math.sin(v510);
+                                local v516 = (v513 + CFrame2:vectorToWorldSpace((Vector3.new(v514, 3, v515)))) * v512;
+                                v511.CFrame = v511.CFrame:Lerp(v516, 0.5);
+                            end;
+
+                            if p502 < 0.25 then
+                                v504[1].Transparency = 1 - p502 / 0.25;
+                                v504[2].Transparency = 1 - p502 / 0.25;
+                                v504[3].Transparency = 1 - p502 / 0.25;
+                                v504[4].Transparency = 1 - p502 / 0.25;
+                                v504[5].Transparency = 1 - p502 / 0.25;
+                            end;
+
+                            v508 = v508 + 1;
+                        end;
+                    end)(v491.Parent:FindFirstChild("Head"), 5);
+                    v491.PlatformStand = false;
+                end;
+            end;
+        end);
+        u487:Play();
+        task.spawn(function() -- Line: 2292
+            -- upvalues: u487 (copy), u517 (ref)
+            u487.Ended:Wait();
+            u517:Disconnect();
+            u517 = nil;
+        end);
+        u480.Glove.Sound:Play();
+    end;
+
+    return true;
+end;
+
+u2.Firework = {};
+u2.Firework.stateless = true;
+u2.Firework.willActivate = u2.Note.willActivate;
+
+function u2.Firework.setState(p518, p519, p520, p521, p522, p523, p524, p525) -- Line: 2310
+    -- upvalues: u4 (copy)
+    if u4 then
+        p519.PrimaryPart.Activate:Fire();
+    end;
+
+    return true;
+end;
+
+u2.FireworkA = u2.Firework;
+u2.FireworkB = u2.Firework;
+u2.FireworkC = u2.Firework;
+u2.FireworkD = u2.Firework;
+u2.Glue = {};
+u2.Glue.stateless = true;
+u2.Glue.willActivate = u2.Note.willActivate;
+
+function u2.Glue.setState(p526, p527, p528, p529, p530, p531, p532, p533) -- Line: 2331
+    -- upvalues: u4 (copy)
+    local PrimaryPart = p527.PrimaryPart;
+    local v534;
+
+    if PrimaryPart then
+        v534 = PrimaryPart:FindFirstChild("Sound");
+    else
+        v534 = PrimaryPart;
+    end;
+
+    if v534 then
+        v534.PlayOnRemove = true;
+        v534:Destroy();
+    end;
+
+    if u4 then
+        p527:Destroy();
+    else
+        local Part = p527:FindFirstChild("Part");
+        local ClickDetector = p527:FindFirstChild("ClickDetector");
+
+        if PrimaryPart then
+            PrimaryPart.Transparency = 1;
+        end;
+
+        if Part then
+            Part.Transparency = 1;
+        end;
+
+        if ClickDetector then
+            ClickDetector:Destroy();
+        end;
+    end;
+
+    return true;
+end;
+
+u2.SticksOfTNT = u2.Firework;
+u2.Cannon = {};
+u2.Cannon.stateless = true;
+u2.Cannon.willActivate = u2.Note.willActivate;
+
+function u2.Cannon.setState(p535, p536, p537, p538, p539, p540, p541, p542) -- Line: 2374
+    -- upvalues: u4 (copy)
+    if u4 then
+        local v543 = game.Players:GetPlayerByUserId(p535);
+        p536.PrimaryPart.Activate:Fire(v543);
+    end;
+
+    return true;
+end;
+
+u2.MiniGun = u2.Cannon;
+u2.Harpoon = u2.Cannon;
+u2.HarpoonGold = u2.Cannon;
+u2.DualCaneHarpoon = u2.Cannon;
+u2.HarpoonDragon = u2.Cannon;
+local u544 = nil;
+local u545 = 0;
+u2.Camera = {};
+u2.Camera.stateless = true;
+
+function u2.Camera.willActivate(p546, p547, p548, p549) -- Line: 2398
+    if not p547 then
+        return false;
+    end;
+
+    if not p548 then
+        return p547;
+    end;
+
+    if p546.BindFire.Value == -1 then
+        if p548 == Enum.KeyCode.F or p548 == Enum.KeyCode.ButtonR2 then
+            return true;
+        end;
+    elseif p548.Value == p546.BindFire.Value then
+        return true;
+    end;
+
+    return false;
+end;
+
+function u2.Camera.setState(p550, p551, p552, p553, p554, p555, p556, p557) -- Line: 2420
+    -- upvalues: u4 (copy), LocalPlayer (copy), u545 (ref), u544 (ref)
+    if not u4 and game.Players:GetPlayerByUserId(p550) == LocalPlayer then
+        local v558 = tick();
+        local OtherData = LocalPlayer:FindFirstChild("OtherData");
+
+        if (OtherData and OtherData:FindFirstChild("CanFlash") and 0.016666666666666666 or 0.39) < v558 - u545 and (p555 and p555 == LocalPlayer.Character) then
+            local v559 = u544;
+
+            if v559 then
+                deactivateCam();
+            end;
+
+            if v559 ~= p551 then
+                activateCam(p551);
+            end;
+
+            u545 = v558;
+        end;
+    end;
+
+    return false;
+end;
+
+u2.CameraDome = u2.Camera;
+local u560 = nil;
+local u561 = nil;
+local u562 = nil;
+local Custom = Enum.CameraType.Custom;
+local u563 = LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid");
+
+function activateCam(p564)
+    -- upvalues: u544 (ref), Custom (ref), CurrentCamera (copy), u563 (ref), RunService (copy), u560 (ref), u561 (ref), u562 (ref)
+    u544 = p564;
+    local LocalPlayer2 = game.Players.LocalPlayer;
+    local u565 = p564.Name == "CameraDome";
+    local PrimaryPart = p564.PrimaryPart;
+    local u566 = p564.CameraScreenGui:Clone();
+    u566.Parent = LocalPlayer2.PlayerGui;
+    u566.Sound:Play();
+    Custom = CurrentCamera.CameraType;
+    u563 = CurrentCamera.CameraSubject;
+
+    if u565 then
+        CurrentCamera.CameraSubject = PrimaryPart;
+    else
+        CurrentCamera.CameraType = Enum.CameraType.Scriptable;
+    end;
+
+    RunService:BindToRenderStep("CameraBlock", 1, function() -- Line: 2475
+        -- upvalues: u565 (copy), CurrentCamera (ref), PrimaryPart (copy), u566 (copy)
+        if not u565 then
+            CurrentCamera.CFrame = PrimaryPart.CFrame * CFrame.new(0, 0, 1.1) * CFrame.Angles(0, 3.141592653589793, 0);
+        end;
+
+        if os.time() % 2 == 1 then
+            u566.Frame.Crosshairs.RecCircle.Visible = false;
+
+            return;
+        end;
+
+        u566.Frame.Crosshairs.RecCircle.Visible = true;
+    end);
+    u560 = PrimaryPart.AncestryChanged:Connect(function() -- Line: 2486
+        -- upvalues: PrimaryPart (copy)
+        if not PrimaryPart:IsDescendantOf(game) then
+            deactivateCam();
+        end;
+    end);
+    u561 = u566:WaitForChild("Frame"):WaitForChild("ExitLabel"):WaitForChild("ExitButton").MouseButton1Click:Connect(function() -- Line: 2492
+        -- upvalues: u561 (ref)
+        u561:Disconnect();
+        u561 = nil;
+        deactivateCam();
+    end);
+    u562 = LocalPlayer2.Character.Humanoid:GetPropertyChangedSignal("SeatPart"):Connect(function() -- Line: 2498
+        -- upvalues: LocalPlayer2 (copy)
+        local SeatPart = LocalPlayer2.Character.Humanoid.SeatPart;
+
+        if not SeatPart or SeatPart:IsA("VehicleSeat") then
+            deactivateCam();
+        end;
+    end);
+end;
+
+function deactivateCam()
+    -- upvalues: u544 (ref), u560 (ref), u561 (ref), u562 (ref), RunService (copy), CurrentCamera (copy), Custom (ref), u563 (ref)
+    u544 = nil;
+    local LocalPlayer2 = game.Players.LocalPlayer;
+
+    if u560 then
+        u560:Disconnect();
+        u560 = nil;
+    end;
+
+    if u561 then
+        u561:Disconnect();
+        u561 = nil;
+    end;
+
+    if u562 then
+        u562:Disconnect();
+        u562 = nil;
+    end;
+
+    pcall(function() -- Line: 2521
+        -- upvalues: RunService (ref)
+        RunService:UnbindFromRenderStep("CameraBlock");
+    end);
+    CurrentCamera.CameraType = Custom;
+    CurrentCamera.CameraSubject = u563;
+    local CameraScreenGui = LocalPlayer2.PlayerGui:FindFirstChild("CameraScreenGui");
+
+    if CameraScreenGui then
+        CameraScreenGui:Destroy();
+    end;
+end;
+
+if not u4 then
+    LocalPlayer.CharacterAdded:Connect(function() -- Line: 2531
+        -- upvalues: LocalPlayer (copy)
+        if LocalPlayer.PlayerGui:FindFirstChild("CameraScreenGui") then
+            deactivateCam();
+        end;
+    end);
+end;
+
+u2.Thruster = {};
+u2.Thruster.canSetNetworkOwner = true;
+u2.Thruster.getState = u2.LightBulb.getState;
+u2.Thruster.calState = u2.LightBulb.calState;
+
+function u2.Thruster.setState(p567, u568, p569, p570, p571, p572, p573, p574, p575) -- Line: 2543
+    -- upvalues: u2 (copy), u4 (copy)
+    local PrimaryPart = u568.PrimaryPart;
+    local v576;
+
+    if u2[u568.Name].getState(u568) == p575 or p575 and (PrimaryPart:IsGrounded() or u568.Fuel.Value <= 0) then
+        v576 = false;
+    else
+        v576 = true;
+        setState(u568, "On", p575);
+
+        if not u4 then
+            local function stopThrust(p577) -- Line: 2555
+                p577.ThrusterSound:Stop();
+                p577.BodyThrust.Force = Vector3.new(0, 0, 0);
+                p577.ParticleEmitter.Enabled = false;
+                local ParticleEmitter2 = p577:FindFirstChild("ParticleEmitter2");
+
+                if ParticleEmitter2 then
+                    ParticleEmitter2.Enabled = false;
+                end;
+            end;
+
+            if p575 then
+                local Value = u568.MassMuiltiplier.Value;
+                local v581 = (function(p578) -- Line: 2567, Name: getTotalMass
+                    local v579 = p578:GetConnectedParts(true);
+                    local v580 = p578:GetMass();
+
+                    for i = 1, #v579 do
+                        v580 = v580 + v579[i]:GetMass();
+
+                        if i >= 850 then
+                            return v580;
+                        end;
+                    end;
+
+                    return v580;
+                end)(PrimaryPart);
+                PrimaryPart.BodyThrust.Force = Vector3.new(0, 0, -1) * (v581 * workspace.Gravity) * Value + Vector3.new(0, 0, 10);
+                PrimaryPart.ParticleEmitter.Enabled = true;
+                local ParticleEmitter2 = PrimaryPart:FindFirstChild("ParticleEmitter2");
+
+                if ParticleEmitter2 then
+                    ParticleEmitter2.Enabled = true;
+                end;
+
+                PrimaryPart.ThrusterSound:Play();
+                task.spawn(function() -- Line: 2589
+                    -- upvalues: u568 (copy), PrimaryPart (copy)
+                    local v582 = tick();
+                    u568.LastGlobalTick.Value = v582;
+                    local v583 = 0;
+
+                    while PrimaryPart.Parent and (u568.LastGlobalTick.Value == v582 and u568.Fuel.Value > 0) do
+                        local Fuel = u568.Fuel;
+                        Fuel.Value = Fuel.Value - v583;
+                        v583 = task.wait(0.2);
+                    end;
+
+                    if PrimaryPart.Parent and (u568.Parent and u568.Fuel.Value <= 0) then
+                        local v584 = PrimaryPart;
+                        v584.ThrusterSound:Stop();
+                        v584.BodyThrust.Force = Vector3.new(0, 0, 0);
+                        v584.ParticleEmitter.Enabled = false;
+                        local ParticleEmitter22 = v584:FindFirstChild("ParticleEmitter2");
+
+                        if ParticleEmitter22 then
+                            ParticleEmitter22.Enabled = false;
+                        end;
+
+                        u568.ClickDetector:Destroy();
+                        PrimaryPart.BrickColor = BrickColor.Red();
+                    end;
+                end);
+
+                return v576;
+            end;
+
+            u568.LastGlobalTick.Value = 0;
+            PrimaryPart.ThrusterSound:Stop();
+            PrimaryPart.BodyThrust.Force = Vector3.new(0, 0, 0);
+            PrimaryPart.ParticleEmitter.Enabled = false;
+            local ParticleEmitter2 = PrimaryPart:FindFirstChild("ParticleEmitter2");
+
+            if ParticleEmitter2 then
+                ParticleEmitter2.Enabled = false;
+            end;
+        end;
+    end;
+
+    return v576;
+end;
+
+u2.MegaThruster = u2.Thruster;
+u2.UltraThruster = u2.Thruster;
+u2.WinterThruster = u2.Thruster;
+u2.HalloweenThruster = u2.Thruster;
+u2.LockedDoor = {};
+u2.LockedDoor.getState = u2.LightBulb.getState;
+u2.LockedDoor.calState = u2.LightBulb.calState;
+
+function u2.LockedDoor.setState(p585, p586, p587, p588, p589, p590, p591, p592, p593) -- Line: 2627
+    -- upvalues: u2 (copy), u4 (copy)
+    local v594;
+
+    if u2[p586.Name].getState(p586) == p593 then
+        v594 = false;
+    else
+        setState(p586, "On", p593);
+        v594 = true;
+
+        if u4 then
+            local Door = p586.Door;
+            local PPart = p586.PPart;
+            local v595 = p586.Name == "WoodTrapDoor";
+            local v596 = p586.Name == "WoodDoor" and 0 or 0.5;
+            Door:BreakJoints();
+
+            if v595 then
+                if p593 then
+                    Door:SetPrimaryPartCFrame(Door.PrimaryPart.CFrame * CFrame.new(-PPart.Size.X / 2, 0, 0));
+                    Door:SetPrimaryPartCFrame(Door.PrimaryPart.CFrame * CFrame.Angles(0, 0, -1.5707963267948966));
+                    Door:SetPrimaryPartCFrame(Door.PrimaryPart.CFrame * CFrame.new(PPart.Size.X / 2, 0, 0));
+                else
+                    Door:SetPrimaryPartCFrame(Door.PrimaryPart.CFrame * CFrame.new(-PPart.Size.X / 2, 0, 0));
+                    Door:SetPrimaryPartCFrame(Door.PrimaryPart.CFrame * CFrame.Angles(0, 0, 1.5707963267948966));
+                    Door:SetPrimaryPartCFrame(Door.PrimaryPart.CFrame * CFrame.new(PPart.Size.X / 2, 0, 0));
+                end;
+            elseif p593 then
+                Door:SetPrimaryPartCFrame(Door.PrimaryPart.CFrame * CFrame.new(-PPart.Size.X / 2 + v596, 0, 0));
+                Door:SetPrimaryPartCFrame(Door.PrimaryPart.CFrame * CFrame.Angles(0, -1.5707963267948966, 0));
+                Door:SetPrimaryPartCFrame(Door.PrimaryPart.CFrame * CFrame.new(PPart.Size.X / 2 - v596, 0, 0));
+            else
+                Door:SetPrimaryPartCFrame(Door.PrimaryPart.CFrame * CFrame.new(-PPart.Size.X / 2 + v596, 0, 0));
+                Door:SetPrimaryPartCFrame(Door.PrimaryPart.CFrame * CFrame.Angles(0, 1.5707963267948966, 0));
+                Door:SetPrimaryPartCFrame(Door.PrimaryPart.CFrame * CFrame.new(PPart.Size.X / 2 - v596, 0, 0));
+            end;
+
+            local v597 = Door:GetChildren();
+
+            for i = 1, #v597 do
+                local v598 = v597[i];
+
+                if v598:IsA("BasePart") then
+                    WeldTogether(v598, PPart);
+                end;
+            end;
+
+            if PPart.Sound.Playing then
+                PPart.Sound:Stop();
+            end;
+
+            PPart.Sound:Play();
+        end;
+    end;
+
+    return v594;
+end;
+
+u2.WoodDoor = u2.LockedDoor;
+u2.WoodTrapDoor = u2.LockedDoor;
+u2.JetTurbine = {};
+u2.JetTurbine.canSetNetworkOwner = true;
+u2.JetTurbine.getState = u2.LightBulb.getState;
+u2.JetTurbine.calState = u2.LightBulb.calState;
+
+function u2.JetTurbine.setState(p599, u600, p601, p602, p603, p604, p605, p606, p607) -- Line: 2702
+    -- upvalues: u2 (copy), u4 (copy), Heartbeat (copy)
+    local PrimaryPart = u600.PrimaryPart;
+    local v608;
+
+    if u2[u600.Name].getState(u600) == p607 or p607 and (PrimaryPart:IsGrounded() or u600.Fuel.Value <= 0) then
+        v608 = false;
+    else
+        v608 = true;
+        setState(u600, "On", p607);
+
+        if not u4 then
+            local function u610(p609) -- Line: 2714
+                local Parent = p609.Parent;
+                p609.BodyVelocity.MaxForce = Vector3.new(0, 0, 0);
+                Parent.Nose.Reflectance = 0;
+                p609.Sound:Stop();
+                Parent.Nose.Trail.Enabled = false;
+                local Trail2 = Parent.Nose:FindFirstChild("Trail2");
+
+                if Trail2 then
+                    Trail2.Enabled = false;
+                end;
+
+                local Trail3 = Parent.Nose:FindFirstChild("Trail3");
+
+                if Trail3 then
+                    Trail3.Enabled = false;
+                end;
+            end;
+
+            if p607 then
+                local Value = u600.MaxForce.Value;
+                local v611 = Value == 10000000000 and (1 / 0) or Value;
+                PrimaryPart.BodyVelocity.MaxForce = Vector3.new(v611, v611, v611);
+                u600.Nose.Reflectance = 0.5;
+                PrimaryPart.Sound:Play();
+                u600.Nose.Trail.Enabled = true;
+                local Trail2 = u600.Nose:FindFirstChild("Trail2");
+
+                if Trail2 then
+                    Trail2.Enabled = true;
+                end;
+
+                local Trail3 = u600.Nose:FindFirstChild("Trail3");
+
+                if Trail3 then
+                    Trail3.Enabled = true;
+                end;
+
+                task.spawn(function() -- Line: 2749
+                    -- upvalues: PrimaryPart (copy), u600 (copy), Heartbeat (ref), u610 (copy)
+                    local function inStages() -- Line: 2751
+                        -- upvalues: PrimaryPart (ref)
+                        local Position = PrimaryPart.Position;
+
+                        return Position.Z > 1359 and Position.Z < 8358;
+                    end;
+
+                    local function outOfBounds() -- Line: 2759
+                        -- upvalues: PrimaryPart (ref)
+                        local Position = PrimaryPart.Position;
+                        local Position2 = PrimaryPart.Position;
+
+                        return Position2.Z > 1359 and Position2.Z < 8358 and (Position.Y >= 150 or (Position.Y <= -18 or (Position.X >= 525 or Position.X <= -530))) and true or false;
+                    end;
+
+                    local v612 = tick();
+                    u600.LastGlobalTick.Value = v612;
+                    local Value2 = u600.MaxStageSpeed.Value;
+                    local v613 = 0;
+
+                    while true do
+                        if not PrimaryPart.Parent or (u600.LastGlobalTick.Value ~= v612 or u600.Fuel.Value <= 0) then
+                            if PrimaryPart.Parent and (u600.Parent and u600.Fuel.Value <= 0) then
+                                u610(PrimaryPart);
+                                u600.ClickDetector:Destroy();
+                                u600.Nose.BrickColor = BrickColor.Red();
+                            end;
+
+                            return;
+                        end;
+
+                        local Fuel = u600.Fuel;
+                        Fuel.Value = Fuel.Value - v613;
+                        local Value3 = u600.MaxSpeed.Value;
+                        local Position = PrimaryPart.Position;
+
+                        if Position.Z > 1359 and Position.Z < 8358 then
+                            local Position2 = PrimaryPart.Position;
+                            local Position3 = PrimaryPart.Position;
+
+                            if Position3.Z > 1359 and Position3.Z < 8358 and (Position2.Y >= 150 or (Position2.Y <= -18 or (Position2.X >= 525 or Position2.X <= -530))) and true or false then
+                                PrimaryPart.BodyVelocity.Velocity = PrimaryPart.CFrame.LookVector * Value3;
+                            else
+                                PrimaryPart.BodyVelocity.Velocity = PrimaryPart.CFrame.LookVector * math.min(Value2, Value3);
+                            end;
+                        else
+                            PrimaryPart.BodyVelocity.Velocity = PrimaryPart.CFrame.LookVector * Value3;
+                        end;
+
+                        v613 = Heartbeat:Wait();
+                    end;
+                end);
+
+                return v608;
+            end;
+
+            u600.LastGlobalTick.Value = 0;
+            u610(PrimaryPart);
+        end;
+    end;
+
+    return v608;
+end;
+
+u2.SonicJetTurbine = u2.JetTurbine;
+u2.JetTurbineWinter = u2.JetTurbine;
+
+function findSpinFactor(p614, p615)
+    local v616 = p615 and p615.Orientation.Y or 0;
+
+    if v616 < 0 then
+        v616 = 360 + v616;
+    end;
+
+    local Y = p614.Orientation.Y;
+
+    if Y < 0 then
+        Y = 360 + Y;
+    end;
+
+    local v617 = (Y - v616) % 360;
+
+    return v617 > 45 and v617 < 225 and -1 or 1;
+end;
+
+u2.BalloonBlock = {};
+u2.BalloonBlock.getState = u2.LightBulb.getState;
+u2.BalloonBlock.calState = u2.LightBulb.calState;
+
+function u2.BalloonBlock.setState(p618, p619, p620, p621, p622, p623, p624, p625, p626) -- Line: 2831
+    -- upvalues: u2 (copy), u4 (copy), GetBlockInfo (copy)
+    local _ = p619.PrimaryPart;
+    local v627;
+
+    if u2[p619.Name].getState(p619) == p626 then
+        v627 = false;
+    else
+        v627 = true;
+        setState(p619, "On", p626);
+
+        if u4 then
+            local PrimaryPart = p619.PrimaryPart;
+
+            if p626 then
+                local _, v628 = GetBlockInfo(p619);
+                local v629 = p619.Name == "BalloonStarBlock";
+                local BalloonPart = p619:FindFirstChild("BalloonPart");
+                local u630 = PrimaryPart.Size.X * PrimaryPart.Size.Y * PrimaryPart.Size.Z;
+
+                if BalloonPart then
+                    BalloonPart:BreakJoints();
+                    local NoWelds = BalloonPart:FindFirstChild("NoWelds");
+
+                    if NoWelds then
+                        NoWelds:Destroy();
+                    end;
+                elseif v629 then
+                    BalloonPart = game.ReplicatedStorage.BuildingParts.Star.PrimaryPart:Clone();
+                else
+                    BalloonPart = Instance.new("Part");
+                end;
+
+                local v631 = math.min(3.5 + (u630 - 1) / 2.2, 250);
+                local v632 = math.min(3.5 + (u630 - 1) / 2.2, 250);
+                local v633 = math.min(3.5 + (u630 - 1) / 2.2, 250);
+                BalloonPart.Size = Vector3.new(v631, v632, v633);
+
+                if PrimaryPart.Color == game.ReplicatedStorage.BuildingParts[p619.Name].PrimaryPart.Color then
+                    if v629 then
+                        local v634 = { Color3.fromRGB(27, 42, 53), Color3.fromRGB(255, 255, 0), Color3.fromRGB(255, 176, 0) };
+                        BalloonPart.Color = v634[math.random(1, #v634)];
+                    else
+                        BalloonPart.BrickColor = BrickColor.Random();
+                    end;
+                else
+                    BalloonPart.Color = PrimaryPart.Color;
+                end;
+
+                BalloonPart.Name = "BalloonPart";
+                BalloonPart.Anchored = false;
+                BalloonPart.CanCollide = false;
+                BalloonPart.Material = Enum.Material.SmoothPlastic;
+                BalloonPart.Transparency = 0.1;
+                BalloonPart.CastShadow = false;
+                BalloonPart.CollisionGroup = tostring(v628.TeamColor) .. "CG";
+                PrimaryPart.RopeConstraint.Thickness = math.clamp(u630 / 100, 0.1, 1);
+                local Attachment = Instance.new("Attachment");
+                Attachment.Name = "Att1";
+                Attachment.Parent = BalloonPart;
+
+                if v629 then
+                    BalloonPart.CFrame = PrimaryPart.CFrame * CFrame.Angles(1.5707963267948966, 0, 0);
+                else
+                    BalloonPart.CFrame = PrimaryPart.CFrame;
+                    BalloonPart.Shape = "Ball";
+                end;
+
+                local BalloonWeld = PrimaryPart:FindFirstChild("BalloonWeld");
+
+                if BalloonWeld then
+                    BalloonWeld:Destroy();
+                end;
+
+                local u635 = WeldTogether(PrimaryPart, BalloonPart);
+                u635.Name = "BalloonWeld";
+                BalloonPart.Parent = PrimaryPart.Parent;
+                PrimaryPart.RopeConstraint.Attachment1 = Attachment;
+                PrimaryPart.RopeConstraint.Enabled = true;
+                PrimaryPart.InflateSound:Play();
+                task.delay(2, function() -- Line: 2918
+                    -- upvalues: u635 (copy), BalloonPart (ref), PrimaryPart (copy), u630 (copy)
+                    if u635.Parent then
+                        u635:Destroy();
+                    end;
+
+                    if BalloonPart.Parent then
+                        PrimaryPart.RopeConstraint.Length = 4.5 + BalloonPart.Size.Y;
+                        local BodyVelocity = Instance.new("BodyVelocity");
+                        local v636 = BalloonPart:GetMass();
+                        local v637 = math.pow(10000, u630) + v636 * workspace.Gravity;
+                        BodyVelocity.MaxForce = Vector3.new(500, v637, 500);
+                        BodyVelocity.Velocity = Vector3.new(0, 6, 0);
+                        BodyVelocity.Parent = BalloonPart;
+                    end;
+                end);
+
+                return v627;
+            end;
+
+            local BalloonPart = p619:FindFirstChild("BalloonPart");
+
+            while BalloonPart do
+                BalloonPart:Destroy();
+                BalloonPart = p619:FindFirstChild("BalloonPart");
+            end;
+
+            PrimaryPart.InflateSound:Stop();
+            PrimaryPart.PopSound:Play();
+        end;
+    end;
+
+    return v627;
+end;
+
+u2.BalloonStarBlock = u2.BalloonBlock;
+u2.ParachuteBlock = {};
+u2.ParachuteBlock.getState = u2.LightBulb.getState;
+u2.ParachuteBlock.calState = u2.LightBulb.calState;
+
+function u2.ParachuteBlock.setState(p638, p639, p640, p641, p642, p643, p644, p645, p646) -- Line: 2957
+    -- upvalues: u2 (copy), u4 (copy), GetBlockInfo (copy)
+    local _ = p639.PrimaryPart;
+    local v647;
+
+    if u2[p639.Name].getState(p639) == p646 then
+        v647 = false;
+    else
+        v647 = true;
+        setState(p639, "On", p646);
+
+        if u4 then
+            local PrimaryPart = p639.PrimaryPart;
+
+            if p646 then
+                local _, v648 = GetBlockInfo(p639);
+                local v649 = PrimaryPart.Size.X * PrimaryPart.Size.Y * PrimaryPart.Size.Z;
+                local v650 = math.sqrt(v649);
+                local v651 = math.min(30, v650);
+                local v652 = game.ReplicatedStorage.OtherParts.Parachute:Clone();
+                v652.PrimaryPart.Size = v652.PrimaryPart.Size * v651;
+                local v653 = v652:GetDescendants();
+
+                for i = 1, #v653 do
+                    local v654 = v653[i];
+
+                    if v654:IsA("Bone") or v654:IsA("Attachment") then
+                        v654.Position = v654.Position * v651;
+                    elseif v654:IsA("RopeConstraint") then
+                        v654.Length = v654.Length * v651;
+                    end;
+                end;
+
+                if PrimaryPart.Color ~= game.ReplicatedStorage.BuildingParts[p639.Name].PrimaryPart.Color then
+                    v652.PrimaryPart.Color = PrimaryPart.Color;
+                end;
+
+                v652.PrimaryPart.CollisionGroup = tostring(v648.TeamColor) .. "CG";
+                local v655 = math.clamp(v651 / 100, 0.1, 1);
+                v652.PrimaryPart.CFrame = PrimaryPart.CFrame;
+                v652.Parent = p639;
+                PrimaryPart.OpenSound:Play();
+                v652.AnimationController:LoadAnimation(v652.Open):Play();
+                local v656 = v652:GetChildren();
+
+                for i = 1, #v656 do
+                    local v657 = v656[i];
+
+                    if v657:IsA("RopeConstraint") then
+                        v657.Thickness = v655;
+                        v657.Attachment1 = PrimaryPart.Att;
+                    end;
+                end;
+
+                local BodyVelocity = Instance.new("BodyVelocity");
+                local v658 = v652.PrimaryPart:GetMass();
+                BodyVelocity.MaxForce = Vector3.new(500, 10000 * v649 + v658 * workspace.Gravity, 500);
+                BodyVelocity.Velocity = Vector3.new(0, -6, 0);
+                BodyVelocity.Parent = v652.PrimaryPart;
+
+                return v647;
+            end;
+
+            local Parachute = p639:FindFirstChild("Parachute");
+
+            while Parachute do
+                Parachute:Destroy();
+                Parachute = p639:FindFirstChild("Parachute");
+            end;
+
+            PrimaryPart.CloseSound:Play();
+        end;
+    end;
+
+    return v647;
+end;
+
+u2.ShieldGenerator = {};
+u2.ShieldGenerator.getState = u2.LightBulb.getState;
+u2.ShieldGenerator.calState = u2.LightBulb.calState;
+
+function u2.ShieldGenerator.setState(p659, p660, p661, p662, p663, p664, p665, p666, p667) -- Line: 3039
+    -- upvalues: u2 (copy), u4 (copy), TweenService (copy)
+    local _ = p660.PrimaryPart;
+    local v668;
+
+    if u2[p660.Name].getState(p660) == p667 then
+        v668 = false;
+    else
+        v668 = true;
+        local v672 = (function(p669) -- Line: 3049, Name: findOnFriend
+            local v670 = p669:GetChildren();
+
+            for i = 1, #v670 do
+                local v671 = v670[i];
+
+                if v671:IsA("ObjectValue") and v671.Name == "Friend" then
+                    local Value = v671.Value;
+
+                    if Value and Value.Parent then
+                        if Value:GetAttribute("On") then
+                            return Value;
+                        end;
+                    else
+                        v671:Destroy();
+                    end;
+                end;
+            end;
+        end)(p660) or p660;
+
+        if v672 == p660 then
+            v672 = p660;
+        else
+            p667 = false;
+        end;
+
+        setState(v672, "On", p667);
+        local PrimaryPart = v672.PrimaryPart;
+
+        if u4 then
+            PrimaryPart.Activate:Invoke(p667);
+
+            return v668;
+        end;
+
+        if p667 then
+            local v673 = math.sqrt(v672.NumOfFriends.Value + 1) * 60;
+            local v674 = math.min(v673, 360);
+            v672.ForceFieldServer.Transparency = 1;
+            local v675 = {
+                Size = Vector3.new(v674, v674, v674)
+            };
+            local v676 = TweenInfo.new(5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out, 0, false);
+            TweenService:Create(v672.ForceField1, v676, v675):Play();
+            local v677 = {
+                Size = Vector3.new(v674, v674, v674) + Vector3.new(5, 5, 5)
+            };
+            local v678 = TweenInfo.new(5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out, 0, false);
+            TweenService:Create(v672.ForceField2, v678, v677):Play();
+            PrimaryPart.Sound2:Stop();
+            PrimaryPart.Sound:Play();
+
+            return v668;
+        end;
+
+        local v679 = {
+            Size = Vector3.new()
+        };
+        local v680 = TweenInfo.new(1.75, Enum.EasingStyle.Quart, Enum.EasingDirection.In, 0, false);
+        TweenService:Create(v672.ForceField1, v680, v679):Play();
+        TweenService:Create(v672.ForceField2, v680, v679):Play();
+        PrimaryPart.Sound2:Play();
+    end;
+
+    return v668;
+end;
+
+u2.Magnet = {};
+u2.Magnet.getState = u2.LightBulb.getState;
+u2.Magnet.calState = u2.LightBulb.calState;
+
+function u2.Magnet.setState(p681, p682, p683, p684, p685, p686, p687, p688, p689) -- Line: 3130
+    -- upvalues: u2 (copy), u4 (copy)
+    local _ = p682.PrimaryPart;
+    local v690;
+
+    if u2[p682.Name].getState(p682) == p689 then
+        v690 = false;
+    else
+        v690 = true;
+        setState(p682, "On", p689);
+        local PrimaryPart = p682.PrimaryPart;
+
+        if u4 then
+            local v691 = game.Players:GetPlayerByUserId(p681);
+            PrimaryPart.Activate:Invoke(v691, p689);
+        end;
+    end;
+
+    return v690;
+end;
+
+function WeldTogether(p692, p693)
+    if not (p692:FindFirstChild("NoWelds") or p693:FindFirstChild("NoWelds")) then
+        local Weld = Instance.new("Weld");
+        Weld.Part0 = p692;
+        Weld.Part1 = p693;
+        Weld.C0 = CFrame.new();
+        Weld.C1 = p693.CFrame:toObjectSpace(p692.CFrame);
+        Weld.Parent = p692;
+
+        return Weld;
+    end;
+end;
+
+function displayError(p694)
+    warn("An error occurred!\nError:", p694, "\nTraceback:", debug.traceback());
+end;
+
+function u2.addBulkToRunQueue(p695, p696) -- Line: 3173
+    -- upvalues: u2 (copy), CollectionService (copy), u6 (copy), u7 (copy), u5 (ref)
+    if not p696[1] then
+        return;
+    end;
+
+    for i = #p696, 1, -1 do
+        local v697 = p696[i];
+        local v698 = v697[1];
+
+        if v698 and u2[v698.Name] then
+            local v699 = v697[2];
+            local v700 = v697[3];
+            local v701 = v697[4];
+
+            if CollectionService:HasTag(v698, "SeatInput") then
+                local _ = v697[9];
+            end;
+
+            local stateless = u2[v698.Name].stateless;
+            local v702;
+
+            if stateless then
+                v702 = u2[v698.Name].willActivate(v698, v699, v700, v701);
+            else
+                v702 = nil;
+            end;
+
+            if stateless and not v702 then
+                table.remove(p696, i);
+            else
+                if stateless then
+                    v697[8] = true;
+                end;
+
+                if u6[p695] and u6[p695][v698] then
+                    if CollectionService:HasTag(v698, "SeatInput") then
+                        local v703 = v697[9];
+
+                        for i2, v in pairs(u6[p695][v698][9]) do
+                            if not v703[i2] then
+                                v703[i2] = v;
+                            end;
+                        end;
+                    end;
+
+                    for i2 = 1, math.max(#v697, #u6[p695][v698]) do
+                        u6[p695][v698][i2] = v697[i2];
+                    end;
+
+                    table.remove(p696, i);
+                else
+                    if not u6[p695] then
+                        u6[p695] = {};
+                        u7[p695] = 0;
+                    end;
+
+                    u6[p695][v698] = v697;
+                    local v704 = u7;
+                    v704[p695] = v704[p695] + 1;
+                end;
+            end;
+        else
+            table.remove(p696, i);
+        end;
+    end;
+
+    if p696[1] then
+        if not u5[p695] then
+            u5[p695] = {};
+        end;
+
+        table.insert(u5[p695], p696);
+        checkToRunQueue(p695);
+    end;
+end;
+
+function addConnectionsToQueue(p705, p706, p707, p708, p709, p710, p711)
+    -- upvalues: u8 (ref)
+    if not p705[1] then
+        return;
+    end;
+
+    local v712 = {};
+    local v713 = false;
+
+    for i = 1, #p705 do
+        local v714 = p705[i];
+
+        if v714:IsA("Beam") then
+            if v714.Attachment1 and (v714.Attachment1.Parent and (v714.Attachment1.Parent.Parent and v714.Attachment1.Parent.Parent.Parent)) then
+                local Parent = v714.Attachment1.Parent.Parent;
+                table.insert(v712, {
+                    Parent,
+                    p707,
+                    p708,
+                    p709,
+                    p710,
+                    p711,
+                    true,
+                    false
+                });
+
+                if Parent:GetAttribute("Running") then
+                    v713 = true;
+                end;
+            elseif v714.Attachment1 == nil or (v714.Attachment1.Parent == nil or (v714.Attachment1.Parent.Parent == nil or v714.Attachment1.Parent.Parent.Parent == nil)) then
+                v714:Destroy();
+            end;
+        end;
+    end;
+
+    if v712[1] then
+        table.insert(v712, v713);
+
+        if not u8[p706] then
+            u8[p706] = {};
+        end;
+
+        table.insert(u8[p706], v712);
+        checkToRunQueue(p706);
+    end;
+end;
+
+local u715 = {};
+
+function releaseBlocks(p716)
+    -- upvalues: u715 (ref), u4 (copy), u6 (copy), u7 (copy)
+    for i = 1, #u715 do
+        local v717 = u715[i][1];
+
+        if v717 then
+            if not u4 then
+                v717:SetAttribute("Running", nil);
+            end;
+
+            if u6[p716] then
+                u6[p716][v717] = nil;
+                local v718 = u7;
+                v718[p716] = v718[p716] - 1;
+
+                if u7[p716] < 1 then
+                    u6[p716] = nil;
+                    u7[p716] = nil;
+                end;
+            end;
+        end;
+    end;
+
+    u715 = {};
+end;
+
+local u719 = {};
+local u720 = {};
+
+function checkToRunQueue(u721)
+    -- upvalues: u720 (copy), u719 (copy), u5 (ref), u8 (ref), u2 (copy), u4 (copy), CollectionService (copy), u715 (ref), u1 (copy)
+    if not u720[u721] then
+        u720[u721] = true;
+        task.spawn(function() -- Line: 3341
+            -- upvalues: u719 (ref), u5 (ref), u721 (copy), u8 (ref), u2 (ref), u4 (ref), CollectionService (ref), u715 (ref), u1 (ref), u720 (ref)
+            local u722 = 0;
+
+            local function spendBudget(p723, p724) -- Line: 3345
+                -- upvalues: u719 (ref), u722 (ref)
+                if not u719[p723] then
+                    u719[p723] = 20;
+                end;
+
+                while u719[p723] < p724 do
+                    releaseBlocks(p723);
+                    task.wait(0.016666666666666666);
+                    u719[p723] = u719[p723] + u722;
+                    u722 = 0;
+                end;
+
+                u719[p723] = u719[p723] - p724;
+                u722 = u722 + p724;
+            end;
+
+            xpcall(function() -- Line: 3363
+                -- upvalues: u5 (ref), u721 (ref), u8 (ref), u2 (ref), u4 (ref), spendBudget (copy), CollectionService (ref), u715 (ref), u1 (ref)
+                while u5[u721] and u5[u721][1] or u8[u721] and u8[u721][1] do
+                    if u8[u721] then
+                        while u8[u721][1] do
+                            local v725 = table.remove(u8[u721], 1);
+                            table.remove(v725, #v725);
+                            u2.addBulkToRunQueue(u721, v725);
+                        end;
+
+                        u8[u721] = nil;
+                    end;
+
+                    local v726 = {};
+
+                    if u5[u721] and u5[u721][1] then
+                        local v727 = table.remove(u5[u721], 1);
+
+                        while v727[1] do
+                            local v728 = table.remove(v727, 1);
+                            local v729 = v728[1];
+                            local v730 = v728[2];
+                            local v731 = v728[3];
+                            local v732 = v728[4];
+                            local v733 = v728[5];
+                            local v734 = v728[6];
+                            local v735 = v728[7];
+                            local v736 = v728[8];
+                            local calState = u2[v729.Name].calState;
+
+                            if v729 and v729.Parent then
+                                if v736 then
+                                    table.remove(v728, 8);
+                                else
+                                    v728 = {
+                                        v729,
+                                        v730,
+                                        v731,
+                                        v732,
+                                        v733,
+                                        v734,
+                                        v735,
+                                        calState(u721, v730, v731, v732, v729)
+                                    };
+                                end;
+
+                                table.insert(v726, v728);
+
+                                if not u4 then
+                                    v729:SetAttribute("Running", true);
+                                end;
+
+                                spendBudget(u721, 0.1);
+                            end;
+                        end;
+                    end;
+
+                    while v726[1] do
+                        local v737 = table.remove(v726, 1);
+                        local v738 = v737[1];
+                        local _ = v737[5];
+                        local v739 = v737[6];
+                        local setState2 = u2[v738.Name].setState;
+
+                        if v738 and v738.Parent then
+                            local v740, v741 = setState2(u721, table.unpack(v737));
+                            local v742 = { v738 };
+
+                            if CollectionService:HasTag(v738, "SeatInput") then
+                                v742[2] = v737[8];
+                            end;
+
+                            table.insert(u715, v742);
+
+                            if v740 then
+                                if v737[7] then
+                                    if v738.Name == "Delay" then
+                                        sendRequestToOtherClients({
+                                            v737[1],
+                                            v737[2],
+                                            v737[3],
+                                            v737[4],
+                                            v737[5],
+                                            v737[6],
+                                            false,
+                                            true,
+                                            not v737[8],
+                                            v737[9],
+                                            v738.WaitDuration.Value
+                                        });
+                                    else
+                                        local v743 = {};
+                                        local v744 = v737[8];
+
+                                        if v744 then
+                                            v741 = v744;
+                                        elseif v738.Name ~= "DisplayBlock" then
+                                            v741 = false;
+                                        end;
+
+                                        v743[1], v743[2], v743[3], v743[4], v743[5], v743[6], v743[7], v743[8], v743[9], v743[10], v743[11], v743[12] = v737[1], v737[2], v737[3], v737[4], v737[5], v737[6], false, true, v741, v737[9], v737[10], v737[11];
+                                        sendRequestToOtherClients(v743);
+                                    end;
+                                end;
+
+                                spendBudget(u721, 1);
+                            end;
+
+                            if v740 and (u2[v738.Name].canSetNetworkOwner and v739) then
+                                if u4 then
+                                    u1(v738, (game.Players:GetPlayerByUserId(u721)));
+                                else
+                                    local v745 = v738:GetDescendants();
+
+                                    for i = 1, #v745 do
+                                        local v746 = v745[i];
+
+                                        if v746:IsA("BasePart") then
+                                            local AssemblyRootPart = v746.AssemblyRootPart;
+
+                                            if AssemblyRootPart then
+                                                AssemblyRootPart:SetAttribute("LastRequesterID", u721);
+                                            end;
+                                        end;
+                                    end;
+                                end;
+                            end;
+                        end;
+                    end;
+
+                    if u8[u721] then
+                        local v747 = #u8[u721];
+                        local v748 = 1;
+
+                        while v747 > 0 do
+                            local v749 = u8[u721][v748];
+
+                            if v749[#v749] then
+                                local v750 = table.remove(u8[u721], v748);
+                                table.insert(u8[u721], v750);
+                            else
+                                v748 = v748 + 1;
+                            end;
+
+                            v747 = v747 - 1;
+                        end;
+                    end;
+
+                    releaseBlocks(u721);
+                end;
+            end, displayError);
+            u720[u721] = nil;
+
+            if u5[u721] then
+                u5[u721] = nil;
+            end;
+
+            if u722 > 0 then
+                task.wait(0.016666666666666666);
+                u719[u721] = u719[u721] + u722;
+
+                if u719[u721] == 20 and not u720[u721] then
+                    u719[u721] = nil;
+                end;
+            end;
+        end);
+    end;
+end;
+
+local u751 = false;
+local u752 = {};
+
+function sendRequestToOtherClients(p753)
+    -- upvalues: u752 (ref), u751 (ref), u4 (copy), QueueBlocksRequest (copy)
+    if #u752 < 50 then
+        table.insert(u752, p753);
+    end;
+
+    if u751 then
+        return;
+    end;
+
+    u751 = true;
+    task.spawn(function() -- Line: 3590
+        -- upvalues: u752 (ref), u4 (ref), QueueBlocksRequest (ref), u751 (ref)
+        while u752[1] do
+            if not u4 then
+                QueueBlocksRequest:FireServer(u752);
+                u752 = {};
+            end;
+
+            task.wait(0.016666666666666666);
+        end;
+
+        u751 = false;
+    end);
+end;
+
+function u2.getSynchronizeInfo() -- Line: 3606
+    -- upvalues: u4 (copy), u2 (copy), u5 (ref), u8 (ref)
+    if u4 then
+        local v754 = workspace.Blocks:GetChildren();
+        local v755 = {};
+
+        for i = 1, #v754 do
+            local v756 = v754[i];
+            local v757 = game.Players:FindFirstChild(v756.Name);
+
+            if v757 then
+                local UserId = v757.UserId;
+                local v758 = v756:GetChildren();
+
+                for i2 = 1, #v758 do
+                    local v759 = v758[i2];
+                    local v760 = u2[v759.Name];
+                    local v761 = v760 and v760.stateless and v759.Name == "DisplayBlock";
+
+                    if v760 and (not v760.stateless or v761) then
+                        if not v755[UserId] then
+                            v755[UserId] = {};
+                        end;
+
+                        local v762 = nil;
+                        local v763;
+
+                        if v761 then
+                            local NextColor = game.ReplicatedStorage.InputLocalScript.GetStoredBlockState:Invoke(v759).NextColor;
+                            v763 = NextColor and {
+                                {
+                                    v759,
+                                    false,
+                                    false,
+                                    false,
+                                    false,
+                                    false,
+                                    false,
+                                    true,
+                                    NextColor
+                                }
+                            } or v762;
+                        else
+                            v763 = {
+                                {
+                                    v759,
+                                    false,
+                                    false,
+                                    false,
+                                    false,
+                                    false,
+                                    false,
+                                    true,
+                                    v760.getState(v759)
+                                }
+                            };
+                        end;
+
+                        if v763 then
+                            table.insert(v755[UserId], v763);
+                        end;
+                    end;
+                end;
+            end;
+        end;
+
+        for i, v in pairs(u5) do
+            if not v755[i] then
+                v755[i] = {};
+            end;
+
+            for _, v2 in ipairs(v) do
+                table.insert(v755[i], v2);
+            end;
+        end;
+
+        return v755, u8;
+    end;
+end;
+
+function setState(p764, p765, p766)
+    -- upvalues: u4 (copy)
+    if p766 == false then
+        p766 = nil;
+    end;
+
+    if u4 then
+        game.ReplicatedStorage.InputLocalScript.StoreBlockState:Invoke(p764, p765, p766);
+
+        return;
+    end;
+
+    p764:SetAttribute(p765, p766);
+end;
+
+function u2.synchronizeClient() -- Line: 3681
+    -- upvalues: u4 (copy), u5 (ref), u8 (ref)
+    if u4 then
+        return;
+    end;
+
+    local v767, v768 = game.ReplicatedStorage.InputLocalScript:WaitForChild("getSynchronizeInfo"):InvokeServer();
+    u5 = v767;
+    u8 = v768;
+
+    for i, _ in pairs(u5) do
+        checkToRunQueue(i);
+    end;
+
+    for i, _ in pairs(u8) do
+        checkToRunQueue(i);
+    end;
+end;
+
+return u2;
