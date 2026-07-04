@@ -1,0 +1,990 @@
+-- Decompiled with Potassium's decompiler.
+
+local u1 = {};
+setmetatable(u1, {
+    __index = function(p2, p3) -- Line: 4
+        p2[p3] = {};
+
+        return p2[p3];
+    end
+});
+local v4 = {};
+game:GetService("CollectionService");
+game:GetService("RunService");
+require(game.ReplicatedStorage.Scripts.BlockFunctions);
+
+function stringToNum(p5, p6)
+    local v7 = tonumber(p5);
+
+    if v7 and (v7 == v7 and math.abs(v7) ~= (1 / 0)) then
+        return v7;
+    end;
+
+    return p6;
+end;
+
+local v8 = 1000;
+local v9 = {};
+v4.Anchored = v9;
+v9.ValueType = "boolean";
+v9.Name = "Anchored";
+v9.OrderPriority = v8;
+local v10 = v8 - 1;
+
+function v9.GetState(p11) -- Line: 35
+    return p11.PrimaryPart.Anchored;
+end;
+
+function v9.GetPropertyState(p12, p13) -- Line: 38
+    local v14 = -1;
+
+    for i = 1, #p13 do
+        local v15 = p13[i];
+
+        if v15.PrimaryPart then
+            local v16 = p12.GetState(v15);
+
+            if v14 == -1 then
+                if v16 then
+                    v14 = 1;
+                else
+                    v14 = 0;
+                end;
+            elseif v14 == 1 and v16 == false or v14 == 0 and v16 == true then
+                v14 = 2;
+            end;
+        end;
+    end;
+
+    return v14;
+end;
+
+function v9.UpdatePropertyButtonFunction(p17, p18, p19, p20) -- Line: 58
+    local v21 = p17.GetPropertyState(p17, p19);
+
+    if v21 == 1 then
+        p18.CheckBox.On.Visible = true;
+        p18.CheckBox.Mixed.Visible = false;
+    elseif v21 == 0 then
+        p18.CheckBox.On.Visible = false;
+        p18.CheckBox.Mixed.Visible = false;
+    elseif v21 == 2 then
+        p18.CheckBox.On.Visible = false;
+        p18.CheckBox.Mixed.Visible = true;
+    end;
+
+    if workspace.Challenge.Teams:FindFirstChild(p20.Team.Name) then
+        p18.CheckBox.BackgroundColor3 = Color3.fromRGB(0, 0, 0);
+
+        return;
+    end;
+
+    p18.CheckBox.BackgroundColor3 = Color3.fromRGB(132, 132, 132);
+end;
+
+u1.All.Anchored = v9;
+local v22 = {};
+v4.Collision = v22;
+v22.ValueType = "boolean";
+v22.Name = "Collision";
+v22.OrderPriority = v10;
+local v23 = v10 - 1;
+
+function v22.GetState(p24) -- Line: 87
+    return not p24:HasTag("NotCanCollideByTool");
+end;
+
+v22.GetPropertyState = v4.Anchored.GetPropertyState;
+
+function v22.UpdatePropertyButtonFunction(p25, p26, p27) -- Line: 91
+    local v28 = p25.GetPropertyState(p25, p27);
+
+    if v28 == 1 then
+        p26.CheckBox.On.Visible = true;
+        p26.CheckBox.Mixed.Visible = false;
+
+        return;
+    end;
+
+    if v28 ~= 0 then
+        if v28 == 2 then
+            p26.CheckBox.On.Visible = false;
+            p26.CheckBox.Mixed.Visible = true;
+        end;
+
+        return;
+    end;
+
+    p26.CheckBox.On.Visible = false;
+    p26.CheckBox.Mixed.Visible = false;
+end;
+
+u1.All.Collision = v22;
+local v29 = {};
+v4["Cast shadow"] = v29;
+v29.ValueType = "boolean";
+v29.Name = "Cast shadow";
+v29.OrderPriority = v23;
+local v30 = v23 - 1;
+
+function v29.GetState(p31) -- Line: 115
+    return p31.PrimaryPart.CastShadow;
+end;
+
+v29.GetPropertyState = v4.Collision.GetPropertyState;
+v29.UpdatePropertyButtonFunction = v4.Collision.UpdatePropertyButtonFunction;
+u1.All["Cast shadow"] = v29;
+local v32 = {};
+v4.Transparency = v32;
+v32.ValueType = "number+";
+v32.Name = "Transparency";
+v32.Max = 1;
+v32.Min = 0;
+v32.OrderPriority = v30;
+local v33 = v30 - 1;
+
+function v32.GetState(p34) -- Line: 133
+    return p34:GetAttribute("Transparency") or 0;
+end;
+
+function v32.GetPropertyState(p35, p36) -- Line: 136
+    local v37 = -2;
+
+    for i = 1, #p36 do
+        local v38 = p36[i];
+
+        if v38.PrimaryPart then
+            local v39 = p35.GetState(v38);
+
+            if v37 == -2 then
+                v37 = v39;
+            elseif v37 ~= v39 then
+                v37 = -1;
+            end;
+        end;
+    end;
+
+    return v37;
+end;
+
+function v32.UpdatePropertyButtonFunction(p40, p41, p42, p43) -- Line: 155
+    local v44 = p40.GetPropertyState(p40, p42);
+
+    if v44 == -1 then
+        p41.TextNum.Text = "";
+        p41.TextNum.Mixed.Visible = true;
+
+        return;
+    end;
+
+    local TextNum = p41.TextNum;
+    local v45 = math.round(v44 * 100);
+    TextNum.Text = tostring(v45) .. "%";
+    p41.TextNum.Mixed.Visible = false;
+end;
+
+u1.All.Transparency = v32;
+local v46 = {};
+v4["Piston length"] = v46;
+v46.ValueType = "number+";
+v46.Name = "Piston length";
+v46.Max = 10.5;
+v46.Min = 0.3;
+v46.OrderPriority = v33;
+local v47 = v33 - 1;
+
+function v46.GetState(p48) -- Line: 182
+    return p48.ExtendLength.Value;
+end;
+
+function v46.GetPropertyState(p49, p50) -- Line: 185
+    -- upvalues: u1 (copy)
+    local v51 = -2;
+
+    for i = 1, #p50 do
+        local v52 = p50[i];
+        local v53 = u1[v52.Name];
+
+        if v52.PrimaryPart and (v53 and v53[p49.Name]) then
+            local v54 = p49.GetState(v52);
+
+            if v51 == -2 then
+                v51 = v54;
+            elseif v51 ~= v54 then
+                v51 = -1;
+            end;
+        end;
+    end;
+
+    return v51;
+end;
+
+function v46.UpdatePropertyButtonFunction(p55, p56, p57, p58) -- Line: 205
+    local v59 = p55.GetPropertyState(p55, p57);
+
+    if v59 == -1 then
+        p56.TextNum.Text = "";
+        p56.TextNum.Mixed.Visible = true;
+
+        return;
+    end;
+
+    local TextNum = p56.TextNum;
+    local v60 = math.round(v59 * 100) / 100;
+    TextNum.Text = tostring(v60);
+    p56.TextNum.Mixed.Visible = false;
+end;
+
+u1.Piston["Piston length"] = v46;
+local v61 = {};
+v4["Piston speed"] = v61;
+v61.ValueType = "number+";
+v61.Name = "Piston speed";
+v61.Max = 600;
+v61.Min = 1;
+v61.OrderPriority = v47;
+local v62 = v47 - 1;
+
+function v61.GetState(p63) -- Line: 228
+    return p63.Speed.Value;
+end;
+
+v61.GetPropertyState = v4["Piston length"].GetPropertyState;
+v61.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.Piston["Piston speed"] = v61;
+local v64 = {};
+v4["Wheel torque"] = v64;
+v64.ValueType = "level";
+v64.Name = "Wheel torque";
+v64.OrderPriority = v62;
+local v65 = v62 - 1;
+
+function v64.GetState(p66) -- Line: 244
+    local v67 = string.len(p66.PrimaryPart.HingeConstraint.MotorMaxTorque / 1000000);
+
+    return math.clamp(v67, 1, 5);
+end;
+
+v64.GetPropertyState = v4["Piston length"].GetPropertyState;
+
+function v64.UpdatePropertyButtonFunction(p68, p69, p70, p71) -- Line: 249
+    local v72 = p68.GetPropertyState(p68, p70);
+    p69.bg.l1.Visible = false;
+    p69.bg.l2.Visible = false;
+    p69.bg.l3.Visible = false;
+    p69.bg.l4.Visible = false;
+    p69.bg.l5.Visible = false;
+    p69.bg.Mixed.Visible = false;
+
+    if v72 == -1 then
+        p69.bg.Mixed.Visible = true;
+
+        return;
+    end;
+
+    p69.bg["l" .. tostring(v72)].Visible = true;
+end;
+
+u1.Motor["Wheel torque"] = v64;
+u1.HugeMotor["Wheel torque"] = v64;
+u1.FrontWheel["Wheel torque"] = v64;
+u1.BackWheel["Wheel torque"] = v64;
+u1.HugeFrontWheel["Wheel torque"] = v64;
+u1.HugeBackWheel["Wheel torque"] = v64;
+u1.FrontWheelCookie["Wheel torque"] = v64;
+u1.BackWheelCookie["Wheel torque"] = v64;
+u1.FrontWheelMint["Wheel torque"] = v64;
+u1.BackWheelMint["Wheel torque"] = v64;
+local v73 = {};
+v4["Wheel speed"] = v73;
+v73.ValueType = "number+";
+v73.Name = "Wheel speed";
+v73.Max = 50;
+v73.Min = 0;
+v73.OrderPriority = v65;
+local v74 = v65 - 1;
+
+function v73.GetState(p75) -- Line: 286
+    return p75.MaxSpeed.Value;
+end;
+
+v73.GetPropertyState = v4["Piston length"].GetPropertyState;
+v73.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.Motor["Wheel speed"] = v73;
+u1.HugeMotor["Wheel speed"] = v73;
+u1.FrontWheel["Wheel speed"] = v73;
+u1.BackWheel["Wheel speed"] = v73;
+u1.HugeFrontWheel["Wheel speed"] = v73;
+u1.HugeBackWheel["Wheel speed"] = v73;
+u1.FrontWheelCookie["Wheel speed"] = v73;
+u1.BackWheelCookie["Wheel speed"] = v73;
+u1.FrontWheelMint["Wheel speed"] = v73;
+u1.BackWheelMint["Wheel speed"] = v73;
+local v76 = {};
+v4["Reverse spin"] = v76;
+v76.ValueType = "boolean";
+v76.Name = "Reverse spin";
+v76.OrderPriority = v74;
+local v77 = v74 - 1;
+
+function v76.GetState(p78) -- Line: 311
+    return p78.ReverseSpin.Value;
+end;
+
+function v76.GetPropertyState(p79, p80) -- Line: 314
+    -- upvalues: u1 (copy)
+    local v81 = -1;
+
+    for i = 1, #p80 do
+        local v82 = p80[i];
+        local v83 = u1[v82.Name];
+
+        if v82.PrimaryPart and (v83 and v83[p79.Name]) then
+            local v84 = p79.GetState(v82);
+
+            if v81 == -1 then
+                if v84 then
+                    v81 = 1;
+                else
+                    v81 = 0;
+                end;
+            elseif v81 == 1 and v84 == false or v81 == 0 and v84 == true then
+                v81 = 2;
+            end;
+        end;
+    end;
+
+    return v81;
+end;
+
+v76.UpdatePropertyButtonFunction = v4.Collision.UpdatePropertyButtonFunction;
+u1.Motor["Reverse spin"] = v76;
+u1.HugeMotor["Reverse spin"] = v76;
+u1.FrontWheel["Reverse spin"] = v76;
+u1.BackWheel["Reverse spin"] = v76;
+u1.HugeFrontWheel["Reverse spin"] = v76;
+u1.HugeBackWheel["Reverse spin"] = v76;
+u1.FrontWheelCookie["Reverse spin"] = v76;
+u1.BackWheelCookie["Reverse spin"] = v76;
+u1.FrontWheelMint["Reverse spin"] = v76;
+u1.BackWheelMint["Reverse spin"] = v76;
+local v85 = {};
+v4["Servo torque"] = v85;
+v85.ValueType = "level";
+v85.Name = "Servo torque";
+v85.OrderPriority = v77;
+local v86 = v77 - 1;
+
+function v85.GetState(p87) -- Line: 356
+    local v88 = string.len(p87.PrimaryPart.HingeConstraint.ServoMaxTorque / 1000000);
+
+    return math.clamp(v88, 1, 5);
+end;
+
+v85.GetPropertyState = v4["Piston length"].GetPropertyState;
+v85.UpdatePropertyButtonFunction = v4["Wheel torque"].UpdatePropertyButtonFunction;
+u1.Servo["Servo torque"] = v85;
+local v89 = {};
+v4["Servo speed"] = v89;
+v89.ValueType = "number+";
+v89.Name = "Servo speed";
+v89.Max = 50;
+v89.Min = 0;
+v89.OrderPriority = v86;
+local v90 = v86 - 1;
+
+function v89.GetState(p91) -- Line: 375
+    return p91.PrimaryPart.HingeConstraint.AngularSpeed;
+end;
+
+v89.GetPropertyState = v4["Piston length"].GetPropertyState;
+v89.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.Servo["Servo speed"] = v89;
+local v92 = {};
+v4["Servo angle"] = v92;
+v92.ValueType = "number+";
+v92.Name = "Servo angle";
+v92.Max = 180;
+v92.Min = 0;
+v92.OrderPriority = v90;
+local v93 = v90 - 1;
+
+function v92.GetState(p94) -- Line: 393
+    return p94.TargetAngle.Value;
+end;
+
+v92.GetPropertyState = v4["Piston length"].GetPropertyState;
+v92.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.Servo["Servo angle"] = v92;
+local v95 = {};
+v4["Reverse rotation"] = v95;
+v95.ValueType = "boolean";
+v95.Name = "Reverse rotation";
+v95.OrderPriority = v93;
+local v96 = v93 - 1;
+
+function v95.GetState(p97) -- Line: 409
+    return p97.ReverseRotation.Value;
+end;
+
+v95.GetPropertyState = v4["Reverse spin"].GetPropertyState;
+v95.UpdatePropertyButtonFunction = v4.Collision.UpdatePropertyButtonFunction;
+u1.Servo["Reverse rotation"] = v95;
+local v98 = {};
+v4["Jet force"] = v98;
+v98.ValueType = "level";
+v98.Name = "Jet force";
+v98.OrderPriority = v96;
+local v99 = v96 - 1;
+
+function v98.GetState(p100) -- Line: 425
+    local v101 = string.len(p100.MaxForce.Value / 1000000);
+
+    return math.clamp(v101, 1, 5);
+end;
+
+v98.GetPropertyState = v4["Piston length"].GetPropertyState;
+v98.UpdatePropertyButtonFunction = v4["Wheel torque"].UpdatePropertyButtonFunction;
+u1.JetTurbine["Jet force"] = v98;
+u1.JetTurbineWinter["Jet force"] = v98;
+u1.SonicJetTurbine["Jet force"] = v98;
+local v102 = {};
+v4["Jet speed"] = v102;
+v102.ValueType = "number+";
+v102.Name = "Jet speed";
+v102.Max = 100;
+v102.Min = 0;
+v102.OrderPriority = v99;
+local v103 = v99 - 1;
+v102.GetState = v4["Wheel speed"].GetState;
+v102.GetPropertyState = v4["Piston length"].GetPropertyState;
+v102.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.JetTurbine["Jet speed"] = v102;
+u1.JetTurbineWinter["Jet speed"] = v102;
+u1.SonicJetTurbine["Jet speed"] = v102;
+local v104 = {};
+v4["Fuse time"] = v104;
+v104.ValueType = "number+";
+v104.Name = "Fuse time";
+v104.Max = 60;
+v104.Min = 0;
+v104.OrderPriority = v103;
+local v105 = v103 - 1;
+
+function v104.GetState(p106) -- Line: 464
+    return p106.FuseTime.Value;
+end;
+
+v104.GetPropertyState = v4["Piston length"].GetPropertyState;
+v104.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.FireworkA["Fuse time"] = v104;
+u1.FireworkB["Fuse time"] = v104;
+u1.FireworkC["Fuse time"] = v104;
+u1.FireworkD["Fuse time"] = v104;
+local v107 = {};
+v4["Flight distance"] = v107;
+v107.ValueType = "number+";
+v107.Name = "Flight distance";
+v107.Max = 200;
+v107.Min = 0;
+v107.OrderPriority = v105;
+local v108 = v105 - 1;
+
+function v107.GetState(p109) -- Line: 485
+    return p109.FlightDistance.Value;
+end;
+
+v107.GetPropertyState = v4["Piston length"].GetPropertyState;
+v107.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.FireworkA["Flight distance"] = v107;
+u1.FireworkB["Flight distance"] = v107;
+u1.FireworkC["Flight distance"] = v107;
+u1.FireworkD["Flight distance"] = v107;
+local v110 = {};
+v4["Delay time"] = v110;
+v110.ValueType = "number+";
+v110.Name = "Delay time";
+v110.Max = 10;
+v110.Min = 0.05;
+v110.OrderPriority = v108;
+local v111 = v108 - 1;
+
+function v110.GetState(p112) -- Line: 506
+    return p112.WaitDuration.Value;
+end;
+
+v110.GetPropertyState = v4["Piston length"].GetPropertyState;
+v110.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.Delay["Delay time"] = v110;
+local v113 = {};
+v4.Legacy = v113;
+v113.ValueType = "boolean";
+v113.Name = "Legacy";
+v113.OrderPriority = v111;
+local v114 = v111 - 1;
+
+function v113.GetState(p115) -- Line: 522
+    return p115:HasTag("Legacy");
+end;
+
+v113.GetPropertyState = v4["Reverse spin"].GetPropertyState;
+v113.UpdatePropertyButtonFunction = v4.Collision.UpdatePropertyButtonFunction;
+u1.Delay.Legacy = v113;
+u1.Switch.Legacy = v113;
+u1.SwitchBig.Legacy = v113;
+u1.Lever.Legacy = v113;
+u1.Button.Legacy = v113;
+local v116 = {};
+v4["Grow head scale"] = v116;
+v116.ValueType = "number+";
+v116.Name = "Grow head scale";
+v116.Max = 2;
+v116.Min = 1;
+v116.OrderPriority = v114;
+local v117 = v114 - 1;
+
+function v116.GetState(p118) -- Line: 544
+    return p118.HeadScale.Value;
+end;
+
+v116.GetPropertyState = v4["Piston length"].GetPropertyState;
+v116.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.CandyRed["Grow head scale"] = v116;
+local v119 = {};
+v4["Grow height scale"] = v119;
+v119.ValueType = "number+";
+v119.Name = "Grow height scale";
+v119.Max = 2;
+v119.Min = 1;
+v119.OrderPriority = v117;
+local v120 = v117 - 1;
+
+function v119.GetState(p121) -- Line: 562
+    return p121.HeightScale.Value;
+end;
+
+v119.GetPropertyState = v4["Piston length"].GetPropertyState;
+v119.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.CandyRed["Grow height scale"] = v119;
+local v122 = {};
+v4["Grow width scale"] = v122;
+v122.ValueType = "number+";
+v122.Name = "Grow width scale";
+v122.Max = 2;
+v122.Min = 1;
+v122.OrderPriority = v120;
+local v123 = v120 - 1;
+
+function v122.GetState(p124) -- Line: 580
+    return p124.WidthScale.Value;
+end;
+
+v122.GetPropertyState = v4["Piston length"].GetPropertyState;
+v122.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.CandyRed["Grow width scale"] = v122;
+local v125 = {};
+v4["Grow depth scale"] = v125;
+v125.ValueType = "number+";
+v125.Name = "Grow depth scale";
+v125.Max = 2;
+v125.Min = 1;
+v125.OrderPriority = v123;
+local v126 = v123 - 1;
+
+function v125.GetState(p127) -- Line: 598
+    return p127.DepthScale.Value;
+end;
+
+v125.GetPropertyState = v4["Piston length"].GetPropertyState;
+v125.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.CandyRed["Grow depth scale"] = v125;
+local v128 = {};
+v4["Shrink head scale"] = v128;
+v128.ValueType = "number+";
+v128.Name = "Shrink head scale";
+v128.Max = 1;
+v128.Min = 0.5;
+v128.OrderPriority = v126;
+local v129 = v126 - 1;
+
+function v128.GetState(p130) -- Line: 616
+    return p130.HeadScale.Value;
+end;
+
+v128.GetPropertyState = v4["Piston length"].GetPropertyState;
+v128.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.CandyBlue["Shrink head scale"] = v128;
+local v131 = {};
+v4["Shrink height scale"] = v131;
+v131.ValueType = "number+";
+v131.Name = "Shrink height scale";
+v131.Max = 1;
+v131.Min = 0.5;
+v131.OrderPriority = v129;
+local v132 = v129 - 1;
+
+function v131.GetState(p133) -- Line: 634
+    return p133.HeightScale.Value;
+end;
+
+v131.GetPropertyState = v4["Piston length"].GetPropertyState;
+v131.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.CandyBlue["Shrink height scale"] = v131;
+local v134 = {};
+v4["Shrink width scale"] = v134;
+v134.ValueType = "number+";
+v134.Name = "Shrink width scale";
+v134.Max = 1;
+v134.Min = 0.5;
+v134.OrderPriority = v132;
+local v135 = v132 - 1;
+
+function v134.GetState(p136) -- Line: 652
+    return p136.WidthScale.Value;
+end;
+
+v134.GetPropertyState = v4["Piston length"].GetPropertyState;
+v134.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.CandyBlue["Shrink width scale"] = v134;
+local v137 = {};
+v4["Shrink depth scale"] = v137;
+v137.ValueType = "number+";
+v137.Name = "Shrink depth scale";
+v137.Max = 1;
+v137.Min = 0.5;
+v137.OrderPriority = v135;
+local v138 = v135 - 1;
+
+function v137.GetState(p139) -- Line: 670
+    return p139.DepthScale.Value;
+end;
+
+v137.GetPropertyState = v4["Piston length"].GetPropertyState;
+v137.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.CandyBlue["Shrink depth scale"] = v137;
+local v140 = {};
+v4.Key = v140;
+v140.ValueType = "number";
+v140.Name = "Key";
+v140.OrderPriority = v138;
+local v141 = v138 - 1;
+
+function v140.GetState(p142) -- Line: 686
+    return p142.SemitoneOffset.Value;
+end;
+
+v140.GetPropertyState = v4["Piston length"].GetPropertyState;
+
+function v140.UpdatePropertyButtonFunction(p143, p144, p145, p146) -- Line: 690
+    local v147 = p143.GetPropertyState(p143, p145);
+    local v148 = { "F#", "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#", "E", "F" };
+
+    if v147 == -1 then
+        p144.TextNum.Text = "";
+        p144.TextNum.Mixed.Visible = true;
+
+        return;
+    end;
+
+    p144.TextNum.Text = v148[v147 % 12 + 1];
+    p144.TextNum.Mixed.Visible = false;
+end;
+
+u1.Note.Key = v140;
+local v149 = {};
+v4.Crosshairs = v149;
+v149.ValueType = "boolean";
+v149.Name = "Crosshairs";
+v149.OrderPriority = v141;
+local v150 = v141 - 1;
+
+function v149.GetState(p151) -- Line: 713
+    return p151.ShowCrosshairs.Value;
+end;
+
+v149.GetPropertyState = v4["Reverse spin"].GetPropertyState;
+v149.UpdatePropertyButtonFunction = v4.Collision.UpdatePropertyButtonFunction;
+u1.Camera.Crosshairs = v149;
+u1.CameraDome.Crosshairs = v149;
+local v152 = {};
+v4.Aim = v152;
+v152.ValueType = "boolean";
+v152.Name = "Aim";
+v152.OrderPriority = v150;
+local v153 = v150 - 1;
+
+function v152.GetState(p154) -- Line: 730
+    return p154.Aim.Value;
+end;
+
+v152.GetPropertyState = v4["Reverse spin"].GetPropertyState;
+v152.UpdatePropertyButtonFunction = v4.Collision.UpdatePropertyButtonFunction;
+u1.Cannon.Aim = v152;
+u1.MiniGun.Aim = v152;
+u1.Harpoon.Aim = v152;
+u1.HarpoonGold.Aim = v152;
+u1.HarpoonDragon.Aim = v152;
+u1.DualCaneHarpoon.Aim = v152;
+local v155 = {};
+v4.Length = v155;
+v155.ValueType = "number+";
+v155.Name = "Length";
+v155.Max = (1 / 0);
+v155.Min = 2;
+v155.OrderPriority = v153;
+local v156 = v153 - 1;
+
+function v155.GetState(p157) -- Line: 753
+    local PrimaryPart = p157.PrimaryPart;
+
+    return (PrimaryPart:FindFirstChildOfClass("RodConstraint") or PrimaryPart:FindFirstChildOfClass("RopeConstraint")).Length;
+end;
+
+v155.GetPropertyState = v4["Piston length"].GetPropertyState;
+v155.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.Bar.Length = v155;
+u1.Rope.Length = v155;
+local v158 = {};
+v4["Angle limit"] = v158;
+v158.ValueType = "number+";
+v158.Name = "Angle limit";
+v158.Max = 180;
+v158.Min = 0;
+v158.OrderPriority = v156;
+local v159 = v156 - 1;
+
+function v158.GetState(p160) -- Line: 774
+    return p160.PrimaryPart.RodConstraint.LimitAngle0;
+end;
+
+v158.GetPropertyState = v4["Piston length"].GetPropertyState;
+v158.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.Bar["Angle limit"] = v158;
+local v161 = {};
+v4["Match rotation"] = v161;
+v161.ValueType = "boolean";
+v161.Name = "Match rotation";
+v161.OrderPriority = v159;
+local v162 = v159 - 1;
+
+function v161.GetState(p163) -- Line: 790
+    return p163.PrimaryPart.AlignOrientation.Enabled;
+end;
+
+v161.GetPropertyState = v4["Reverse spin"].GetPropertyState;
+v161.UpdatePropertyButtonFunction = v4.Collision.UpdatePropertyButtonFunction;
+u1.Bar["Match rotation"] = v161;
+u1.Rope["Match rotation"] = v161;
+local v164 = {};
+v4["Target length"] = v164;
+v164.ValueType = "number+";
+v164.Name = "Target length";
+v164.Max = (1 / 0);
+v164.Min = 2;
+v164.OrderPriority = v162;
+local v165 = v162 - 1;
+
+function v164.GetState(p166) -- Line: 809
+    return p166.PrimaryPart.SpringConstraint.FreeLength;
+end;
+
+v164.GetPropertyState = v4["Piston length"].GetPropertyState;
+v164.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.Spring["Target length"] = v164;
+local v167 = {};
+v4["Max length"] = v167;
+v167.ValueType = "number+";
+v167.Name = "Max length";
+v167.Max = (1 / 0);
+v167.Min = 0.1;
+v167.OrderPriority = v165;
+local v168 = v165 - 1;
+
+function v167.GetState(p169) -- Line: 827
+    return p169.PrimaryPart.SpringConstraint.MaxLength;
+end;
+
+v167.GetPropertyState = v4["Piston length"].GetPropertyState;
+v167.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.Spring["Max length"] = v167;
+local v170 = {};
+v4["Min length"] = v170;
+v170.ValueType = "number+";
+v170.Name = "Min length";
+v170.Max = (1 / 0);
+v170.Min = 0;
+v170.OrderPriority = v168;
+local v171 = v168 - 1;
+
+function v170.GetState(p172) -- Line: 845
+    return p172.PrimaryPart.SpringConstraint.MinLength;
+end;
+
+v170.GetPropertyState = v4["Piston length"].GetPropertyState;
+v170.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.Spring["Min length"] = v170;
+local v173 = {};
+v4.Stiffness = v173;
+v173.ValueType = "number+";
+v173.Name = "Stiffness";
+v173.Max = 250000;
+v173.Min = 0;
+v173.OrderPriority = v171;
+local v174 = v171 - 1;
+
+function v173.GetState(p175) -- Line: 863
+    return p175.PrimaryPart.SpringConstraint.Stiffness;
+end;
+
+v173.GetPropertyState = v4["Piston length"].GetPropertyState;
+v173.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.Spring.Stiffness = v173;
+local v176 = {};
+v4.Damping = v176;
+v176.ValueType = "number+";
+v176.Name = "Damping";
+v176.Max = 250000;
+v176.Min = 0;
+v176.OrderPriority = v174;
+local v177 = v174 - 1;
+
+function v176.GetState(p178) -- Line: 881
+    return p178.PrimaryPart.SpringConstraint.Damping;
+end;
+
+v176.GetPropertyState = v4["Piston length"].GetPropertyState;
+v176.UpdatePropertyButtonFunction = v4["Piston length"].UpdatePropertyButtonFunction;
+u1.Spring.Damping = v176;
+local v179 = {};
+v4.And = v179;
+v179.ValueType = "boolean";
+v179.Name = "And";
+v179.OrderPriority = v177;
+local v180 = v177 - 1;
+
+function v179.GetState(p181) -- Line: 897
+    return p181.And.Value;
+end;
+
+v179.GetPropertyState = v4["Reverse spin"].GetPropertyState;
+v179.UpdatePropertyButtonFunction = v4.Collision.UpdatePropertyButtonFunction;
+u1.Gate.And = v179;
+local v182 = {};
+v4.Or = v182;
+v182.ValueType = "boolean";
+v182.Name = "Or";
+v182.OrderPriority = v180;
+local v183 = v180 - 1;
+
+function v182.GetState(p184) -- Line: 913
+    return p184.Or.Value;
+end;
+
+v182.GetPropertyState = v4["Reverse spin"].GetPropertyState;
+v182.UpdatePropertyButtonFunction = v4.Collision.UpdatePropertyButtonFunction;
+u1.Gate.Or = v182;
+local v185 = {};
+v4.Xor = v185;
+v185.ValueType = "boolean";
+v185.Name = "Xor";
+v185.OrderPriority = v183;
+local v186 = v183 - 1;
+
+function v185.GetState(p187) -- Line: 929
+    return p187.Xor.Value;
+end;
+
+v185.GetPropertyState = v4["Reverse spin"].GetPropertyState;
+v185.UpdatePropertyButtonFunction = v4.Collision.UpdatePropertyButtonFunction;
+u1.Gate.Xor = v185;
+local v188 = {};
+v4.Not = v188;
+v188.ValueType = "boolean";
+v188.Name = "Not";
+v188.OrderPriority = v186;
+local v189 = v186 - 1;
+
+function v188.GetState(p190) -- Line: 945
+    return p190.Not.Value;
+end;
+
+v188.GetPropertyState = v4["Reverse spin"].GetPropertyState;
+v188.UpdatePropertyButtonFunction = v4.Collision.UpdatePropertyButtonFunction;
+u1.Gate.Not = v188;
+
+function u1.updateGateImage(p191) -- Line: 954
+    local Value = p191.And.Value;
+    local Value2 = p191.Or.Value;
+    local Value3 = p191.Xor.Value;
+    local ImageLabel = p191.Part.SurfaceGui.ImageLabel;
+
+    if p191.Not.Value then
+        if Value then
+            ImageLabel.Image = "http://www.roblox.com/asset/?id=125971644713845";
+
+            return;
+        end;
+
+        if Value2 then
+            ImageLabel.Image = "http://www.roblox.com/asset/?id=126908268245793";
+
+            return;
+        end;
+
+        if Value3 then
+            ImageLabel.Image = "http://www.roblox.com/asset/?id=120464622165119";
+        end;
+    else
+        if Value then
+            ImageLabel.Image = "http://www.roblox.com/asset/?id=112468754811083";
+
+            return;
+        end;
+
+        if Value2 then
+            ImageLabel.Image = "http://www.roblox.com/asset/?id=104151754841179";
+
+            return;
+        end;
+
+        if Value3 then
+            ImageLabel.Image = "http://www.roblox.com/asset/?id=106097934141764";
+        end;
+    end;
+end;
+
+local v192 = {};
+v4["Show constraint"] = v192;
+v192.ValueType = "boolean";
+v192.Name = "Show constraint";
+v192.OrderPriority = v189;
+local v193 = v189 - 1;
+
+function v192.GetState(p194) -- Line: 987
+    local v195 = p194:FindFirstChild("BlackPart") or p194.PrimaryPart;
+
+    return (v195:FindFirstChildOfClass("RopeConstraint") or (v195:FindFirstChildOfClass("RodConstraint") or v195:FindFirstChildOfClass("SpringConstraint"))).Visible;
+end;
+
+v192.GetPropertyState = v4["Reverse spin"].GetPropertyState;
+v192.UpdatePropertyButtonFunction = v4.Collision.UpdatePropertyButtonFunction;
+u1.Piston["Show constraint"] = v192;
+u1.Rope["Show constraint"] = v192;
+u1.Bar["Show constraint"] = v192;
+u1.Spring["Show constraint"] = v192;
+local v196 = {};
+v4.Additive = v196;
+v196.ValueType = "boolean";
+v196.Name = "Additive";
+v196.OrderPriority = v193;
+local _ = v193 - 1;
+
+function v196.GetState(p197) -- Line: 1008
+    return p197.Additive.Value;
+end;
+
+v196.GetPropertyState = v4["Reverse spin"].GetPropertyState;
+v196.UpdatePropertyButtonFunction = v4.Collision.UpdatePropertyButtonFunction;
+u1.DisplayBlock.Additive = v196;
+
+return u1;
