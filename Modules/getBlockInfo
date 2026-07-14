@@ -1,0 +1,33 @@
+-- Script Path: game:GetService("ReplicatedStorage").Scripts.GetBlockInfo
+-- Took 0.01s to decompile.
+-- Executor: Potassium (v2.3.0)
+
+-- Decompiled with Potassium's decompiler.
+
+function getBlockInfo(p1, p2)
+    if not p1 or (not p1.Parent or typeof(p1) ~= "Instance") then
+        return;
+    end;
+
+    local Blocks = workspace.Blocks;
+    local Parent = p1.Parent;
+
+    while Parent and (Parent.Parent and (Parent ~= workspace and Parent.Parent ~= Blocks)) do
+        p1 = p1.Parent;
+        Parent = Parent.Parent;
+    end;
+
+    if Parent.Parent == Blocks then
+        local v3 = game.Players:FindFirstChild(Parent.Name);
+
+        if not p2 then
+            return p1, v3, false;
+        end;
+
+        local v4 = game.Players:FindFirstChild(p2.Team.TeamLeader.Value);
+
+        return p1, v3, (not p2.Settings.ShareBlocks.Value and v3 == p2 or p2.Settings.ShareBlocks.Value and (v4 and v3 == v4)) and true or false;
+    end;
+end;
+
+return getBlockInfo;
