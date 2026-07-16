@@ -177,10 +177,15 @@ function ProgressBar:UpdateMaxProgress(max)
 	self.Max = math.max(max,1)
 end
 
-function ProgressBar:UpdateProgress(value)
-	self.Progress = math.clamp(value,0,self.Max)
+function ProgressBar:SetProgress(value)
+	self.Progress = math.clamp(value, 0, self.Max)
+	self:UpdateProgress()
+end
 
-	self.Fill.Size = UDim2.fromScale(self.Progress/self.Max,1)
+function ProgressBar:UpdateProgress()
+	local progress = self.Progress
+
+	self.Fill.Size = UDim2.fromScale(progress / self.Max, 1)
 
 	self.Fill.BackgroundColor3 = Color3.fromRGB(130,255,130)
 
@@ -192,14 +197,14 @@ function ProgressBar:UpdateProgress(value)
 		}
 	):Play()
 
-	if self.Progress > 0 then
+	if progress > 0 then
 		local elapsed = os.clock() - self.StartTime
-		local remaining = ((self.Max-self.Progress) * elapsed) / self.Progress
+		local remaining = ((self.Max - progress) * elapsed) / progress
 
 		self.ETA.Text = string.format(
 			"ETA: %02d:%02d",
-			math.floor(remaining/60),
-			math.floor(remaining%60)
+			math.floor(remaining / 60),
+			math.floor(remaining % 60)
 		)
 	end
 end
