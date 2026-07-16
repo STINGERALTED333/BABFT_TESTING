@@ -10,17 +10,8 @@ local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 
 local function getParent()
-	local ok = pcall(function()
-		local test = Instance.new("ScreenGui")
-		test.Parent = CoreGui
-		test:Destroy()
-	end)
-
-	if ok then
-		return CoreGui
-	end
-
 	local gethui = gethui or get_hidden_gui
+
 	if gethui then
 		return gethui()
 	end
