@@ -10,6 +10,7 @@ local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 
 local function getParent()
+    setthreadidentity(8)
 	local gethui = gethui or get_hidden_gui
 
 	if gethui then
@@ -20,6 +21,7 @@ local function getParent()
 end
 
 function ProgressBar.new(issaver)
+    setthreadidentity(8)
 	local self = setmetatable({}, ProgressBar)
 
 	self.Max = 1
@@ -161,19 +163,23 @@ function ProgressBar.new(issaver)
 end
 
 function ProgressBar:SetDescription(text)
+    setthreadidentity(8)
 	self.Description.Text = text
 end
 
 function ProgressBar:UpdateMaxProgress(max)
+    setthreadidentity(8)
 	self.Max = math.max(max,1)
 end
 
 function ProgressBar:SetProgress(value)
+    setthreadidentity(8)
 	self.Progress = math.clamp(value, 0, self.Max)
 	self:UpdateProgress()
 end
 
 function ProgressBar:UpdateProgress()
+    setthreadidentity(8)
 	local progress = self.Progress
 
 	self.Fill.Size = UDim2.fromScale(progress / self.Max, 1)
@@ -201,16 +207,19 @@ function ProgressBar:UpdateProgress()
 end
 
 function ProgressBar:UpdateMaxSteps(max)
+    setthreadidentity(8)
 	self.MaxSteps = max
 	self.StepsLabel.Text = "Steps: "..self.Step.."/"..self.MaxSteps
 end
 
 function ProgressBar:UpdateStep(step)
+    setthreadidentity(8)
 	self.Step = math.clamp(step,0,self.MaxSteps)
 	self.StepsLabel.Text = "Steps: "..self.Step.."/"..self.MaxSteps
 end
 
 function ProgressBar:Destroy()
+    setthreadidentity(8)
 	self.Gui:Destroy()
 end
 return ProgressBar
