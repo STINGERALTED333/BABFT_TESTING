@@ -1,0 +1,225 @@
+--// Exploit-style Build Progress UI
+--// Fixed draggable outline + matched buttons + steps tracker
+-- oooh  skidding :drooling_face: please vibecode all my shit :droooooooooooooooooooooooooool
+
+local ProgressBar = {}
+ProgressBar.__index = ProgressBar
+
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+
+local function getParent()
+    setthreadidentity(8)
+	local gethui = gethui or get_hidden_gui
+
+	if gethui then
+		return gethui()
+	end
+
+	return Players.LocalPlayer:WaitForChild("PlayerGui")
+end
+
+function ProgressBar.new(issaver)
+    setthreadidentity(8)
+	local self = setmetatable({}, ProgressBar)
+
+	self.Max = 1
+	self.Progress = 0
+	self.MaxSteps = 0
+	self.Step = 0
+	self.StartTime = os.clock()
+
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "BuildProgress"
+	gui.ResetOnSpawn = false
+	gui.IgnoreGuiInset = true
+
+	-- Outline / draggable root
+	local outline = Instance.new("Frame")
+	outline.Size = UDim2.fromOffset(276,116)
+	outline.Position = UDim2.new(1,-296,0,18)
+	outline.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	outline.BorderSizePixel = 0
+	outline.Active = true
+	outline.Draggable = true
+	outline.Parent = gui
+
+	-- Main panel
+	local main = Instance.new("Frame")
+	main.Size = UDim2.fromOffset(270,110)
+	main.Position = UDim2.fromOffset(3,3)
+	main.BackgroundColor3 = Color3.fromRGB(19,19,19)
+	main.BorderSizePixel = 0
+	main.Parent = outline
+
+	local header = Instance.new("TextLabel")
+	header.Size = UDim2.new(1,-70,0,25)
+	header.Position = UDim2.fromOffset(10,5)
+	header.BackgroundTransparency = 1
+	header.Font = Enum.Font.Code
+	header.TextSize = 16
+	header.TextColor3 = Color3.fromRGB(230,230,230)
+	header.TextXAlignment = Enum.TextXAlignment.Left
+	header.Text = (issaver or false) and "Saving build" or "Loading build"
+	header.Parent = main
+
+	local minimize = Instance.new("TextButton")
+	minimize.Size = UDim2.fromOffset(25,20)
+	minimize.Position = UDim2.new(1,-55,0,5)
+	minimize.BackgroundColor3 = Color3.fromRGB(19,19,19)
+	minimize.BorderColor3 = Color3.fromRGB(45,45,45)
+	minimize.Font = Enum.Font.Code
+	minimize.TextSize = 16
+	minimize.TextColor3 = Color3.fromRGB(220,220,220)
+	minimize.Text = "-"
+	minimize.Parent = main
+
+	local close = Instance.new("TextButton")
+	close.Size = UDim2.fromOffset(25,20)
+	close.Position = UDim2.new(1,-30,0,5)
+	close.BackgroundColor3 = Color3.fromRGB(19,19,19)
+	close.BorderColor3 = Color3.fromRGB(45,45,45)
+	close.Font = Enum.Font.Code
+	close.TextSize = 14
+	close.TextColor3 = Color3.fromRGB(220,220,220)
+	close.Text = "X"
+	close.Parent = main
+
+	local desc = Instance.new("TextLabel")
+	desc.Size = UDim2.new(.65,0,0,20)
+	desc.Position = UDim2.fromOffset(10,35)
+	desc.BackgroundTransparency = 1
+	desc.Font = Enum.Font.Code
+	desc.TextSize = 13
+	desc.TextColor3 = Color3.fromRGB(160,160,160)
+	desc.TextXAlignment = Enum.TextXAlignment.Left
+	desc.Text = "Starting..."
+	desc.Parent = main
+
+	local steps = Instance.new("TextLabel")
+	steps.Size = UDim2.new(.35,-10,0,20)
+	steps.Position = UDim2.new(.65,0,0,35)
+	steps.BackgroundTransparency = 1
+	steps.Font = Enum.Font.Code
+	steps.TextSize = 13
+	steps.TextColor3 = Color3.fromRGB(160,160,160)
+	steps.TextXAlignment = Enum.TextXAlignment.Right
+	steps.Text = "Steps: 0/0"
+	steps.Parent = main
+
+	local barBack = Instance.new("Frame")
+	barBack.Size = UDim2.new(1,-20,0,14)
+	barBack.Position = UDim2.fromOffset(10,65)
+	barBack.BackgroundColor3 = Color3.fromRGB(15,15,15)
+	barBack.BorderColor3 = Color3.fromRGB(40,40,40)
+	barBack.Parent = main
+
+	local fill = Instance.new("Frame")
+	fill.Size = UDim2.fromScale(0,1)
+	fill.BackgroundColor3 = Color3.fromRGB(40,220,80)
+	fill.BorderSizePixel = 0
+	fill.Parent = barBack
+
+	local eta = Instance.new("TextLabel")
+	eta.Size = UDim2.new(1,-20,0,15)
+	eta.Position = UDim2.fromOffset(10,85)
+	eta.BackgroundTransparency = 1
+	eta.Font = Enum.Font.Code
+	eta.TextSize = 12
+	eta.TextColor3 = Color3.fromRGB(140,140,140)
+	eta.TextXAlignment = Enum.TextXAlignment.Left
+	eta.Text = "ETA: calculating..."
+	eta.Parent = main
+
+	gui.Parent = getParent()
+
+	self.Gui = gui
+	self.Outline = outline
+	self.Main = main
+	self.Fill = fill
+	self.Description = desc
+	self.StepsLabel = steps
+	self.ETA = eta
+
+	minimize.MouseButton1Click:Connect(function()
+		local visible = desc.Visible
+
+		desc.Visible = not visible
+		steps.Visible = not visible
+		barBack.Visible = not visible
+		eta.Visible = not visible
+
+		outline.Size = visible
+			and UDim2.fromOffset(276,41)
+			or UDim2.fromOffset(276,116)
+	end)
+
+	close.MouseButton1Click:Connect(function()
+		gui:Destroy()
+	end)
+
+	return self
+end
+
+function ProgressBar:SetDescription(text)
+    setthreadidentity(8)
+	self.Description.Text = text
+end
+
+function ProgressBar:UpdateMaxProgress(max)
+    setthreadidentity(8)
+	self.Max = math.max(max,1)
+end
+
+function ProgressBar:SetProgress(value)
+    setthreadidentity(8)
+	self.Progress = math.clamp(value, 0, self.Max)
+	self:UpdateProgress()
+end
+
+function ProgressBar:UpdateProgress()
+    setthreadidentity(8)
+	local progress = self.Progress
+
+	self.Fill.Size = UDim2.fromScale(progress / self.Max, 1)
+
+	self.Fill.BackgroundColor3 = Color3.fromRGB(130,255,130)
+
+	TweenService:Create(
+		self.Fill,
+		TweenInfo.new(.35),
+		{
+			BackgroundColor3 = Color3.fromRGB(40,220,80)
+		}
+	):Play()
+
+	if progress > 0 then
+		local elapsed = os.clock() - self.StartTime
+		local remaining = ((self.Max - progress) * elapsed) / progress
+
+		self.ETA.Text = string.format(
+			"ETA: %02d:%02d",
+			math.floor(remaining / 60),
+			math.floor(remaining % 60)
+		)
+	end
+end
+
+function ProgressBar:UpdateMaxSteps(max)
+    setthreadidentity(8)
+	self.MaxSteps = max
+	self.StepsLabel.Text = "Steps: "..self.Step.."/"..self.MaxSteps
+end
+
+function ProgressBar:UpdateStep(step)
+    setthreadidentity(8)
+	self.Step = math.clamp(step,0,self.MaxSteps)
+	self.StepsLabel.Text = "Steps: "..self.Step.."/"..self.MaxSteps
+end
+
+function ProgressBar:Destroy()
+    setthreadidentity(8)
+	self.Gui:Destroy()
+end
+return ProgressBar
